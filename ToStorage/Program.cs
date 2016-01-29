@@ -9,14 +9,6 @@ namespace Knapcode.ToStorage
     {
         static int Main(string[] args)
         {
-            args = new[]
-            {
-                "-a", "ACCOUNT",
-                "-k", "KEY",
-                "-c", "CONTAINER",
-                "-f", "{0}.json",
-                "-t", "application/json"
-            };
             return MainAsync(args).Result;
         }
 
