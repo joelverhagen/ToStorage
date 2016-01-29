@@ -8,19 +8,19 @@ Takes `stdin` and writes it to Azure Blob Storage. Uploads two blobs by default:
 ### Execute
 
 ```
-ping google.com | ToStorage -a ACCOUNT -k KEY -c CONTAINER -f "ping/{0}.txt" -t "text/plain"
+ping google.com | ToStorage -a ACCOUNT -k KEY -c CONTAINER
 ```
 
 ### Output
 
 ```
 Initializing... done.
-Uploading the blob to ping/2016.01.29.15.48.16.txt... done.
+Uploading the blob to 2016.01.29.15.48.16.txt... done.
 Setting the content type... done.
-Updating ping/latest.txt to the latest blob... done.
+Updating latest.txt to the latest blob... done.
 
-Direct: https://ACCOUNT.blob.core.windows.net/CONTAINER/ping/2016.01.29.15.48.16.txt
-Latest: https://ACCOUNT.blob.core.windows.net/CONTAINER/ping/latest.txt
+Direct: https://ACCOUNT.blob.core.windows.net/CONTAINER/2016.01.29.15.48.16.txt
+Latest: https://ACCOUNT.blob.core.windows.net/CONTAINER/latest.txt
 ```
 
 ## Usage
@@ -37,10 +37,11 @@ Knapcode 0.0.0.0
 
   -c, --container            Required. The container name.
 
-  -f, --path-format          Required. The format to use when building the
-                             path.
+  -f, --path-format          Required. (Default: {0}.txt) The format to use
+                             when building the path.
 
-  -t, --content-type         The content type to set on the blob.
+  -t, --content-type         (Default: text/plain) The content type to set on
+                             the blob.
 
   -l, --update-latest        (Default: true) Whether or not to set the 'latest'
                              blob.
