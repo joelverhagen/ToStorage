@@ -9,9 +9,10 @@ namespace Knapcode.ToStorage.AzureBlobStorage
 {
     public class Client
     {
-        public async Task UploadAsync(Options options, Stream stream)
+        public async Task UploadAsync(Options options, Stream stream, TextWriter trace)
         {
             // initialize
+            trace.Write("Initializing...");
             CloudStorageAccount cloudStorageAccount;
             if (options.ConnectionString != null)
             {
@@ -27,7 +28,6 @@ namespace Knapcode.ToStorage.AzureBlobStorage
                 throw new ArgumentException("A connection string or account and key must be specified.", nameof(options));
             }
 
-            
             var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
             var cloudBlobContainer = cloudBlobClient.GetContainerReference(options.Container);
 
@@ -35,8 +35,10 @@ namespace Knapcode.ToStorage.AzureBlobStorage
                 BlobContainerPublicAccessType.Blob,
                 new BlobRequestOptions(),
                 null);
+            trace.WriteLine(" done.");
 
             string directPath = string.Format(options.PathFormat, DateTimeOffset.UtcNow.ToString("yyyy.MM.dd.HH.mm.ss"));
+            trace.Write($"Uploading the blob to {directPath}...");
             var directBlob = cloudBlobContainer.GetBlockBlobReference(directPath);
 
             // upload the blob
@@ -45,22 +47,37 @@ namespace Knapcode.ToStorage.AzureBlobStorage
                 await stream.CopyToAsync(blobStream);
             }
 
+            trace.WriteLine(" done.");
+
             // set the content type
             if (!string.IsNullOrWhiteSpace(options.ContentType))
             {
+                trace.Write("Setting the content type...");
                 directBlob.Properties.ContentType = options.ContentType;
                 await directBlob.SetPropertiesAsync();
+                trace.WriteLine(" done.");
             }
 
             // set the latest
+            CloudBlockBlob latestBlob = null;
             if (options.UpdateLatest)
             {
-                var latestBlob = cloudBlobContainer.GetBlockBlobReference(string.Format(options.PathFormat, "latest"));
+                var latestPath = string.Format(options.PathFormat, "latest");
+                trace.Write($"Updating {latestPath} to the latest blob...");
+                latestBlob = cloudBlobContainer.GetBlockBlobReference(latestPath);
                 await latestBlob.StartCopyAsync(directBlob);
                 while (latestBlob.CopyState.Status == CopyStatus.Pending)
                 {
                     await Task.Delay(100);
                 }
+                trace.WriteLine(" done.");
+            }
+
+            trace.WriteLine();
+            trace.WriteLine($"Direct: {directBlob.Uri}");
+            if (latestBlob != null)
+            {
+                trace.WriteLine($"Latest: {latestBlob.Uri}");
             }
         }
     }

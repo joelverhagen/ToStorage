@@ -31,7 +31,7 @@ namespace Knapcode.ToStorage
 
             var options = result.MapResult(o => o, e => null);
             var client = new AzureBlobStorage.Client();
-            await client.UploadAsync(options, Console.OpenStandardInput());
+            await client.UploadAsync(options, Console.OpenStandardInput(), Console.Out);
             
             return 0;
         }
