@@ -12,6 +12,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage.Tool", "ToStorage
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage.Core", "ToStorage.Core\ToStorage.Core.csproj", "{6CE61B1D-4BEC-4734-AE09-299C816202BB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{1A3F0BA5-70C5-4226-B81D-332EEE7796E8}"
+	ProjectSection(SolutionItems) = preProject
+		build\build.ps1 = build\build.ps1
+		build\packages.config = build\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,5 +35,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1A3F0BA5-70C5-4226-B81D-332EEE7796E8} = {FC05EAF9-8F03-4B4A-A277-0FEEF5A38B28}
 	EndGlobalSection
 EndGlobal
