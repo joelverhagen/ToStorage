@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Knapcode.ToStorage.AzureBlobStorage
+namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
     public class UploadRequest
     {

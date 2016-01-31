@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CommandLine;
+using Knapcode.ToStorage.Core.AzureBlobStorage;
 
 namespace Knapcode.ToStorage
 {
@@ -28,8 +29,8 @@ namespace Knapcode.ToStorage
             }
 
             // build the implementation models
-            var client = new AzureBlobStorage.Client();
-            var request = new AzureBlobStorage.UploadRequest
+            var client = new Client();
+            var request = new UploadRequest
             {
                 Container = options.Container,
                 ContentType = options.ContentType,

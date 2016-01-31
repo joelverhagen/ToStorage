@@ -4,7 +4,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Knapcode.ToStorage.AzureBlobStorage
+namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
     public class Client
     {
