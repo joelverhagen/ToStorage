@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CommandLine;
+using Knapcode.ToStorage.AzureBlobStorage;
 using Knapcode.ToStorage.Core.AzureBlobStorage;
 
 namespace Knapcode.ToStorage
@@ -15,7 +16,7 @@ namespace Knapcode.ToStorage
         private static async Task<int> MainAsync(string[] args)
         {
             // parse options
-            var result = Parser.Default.ParseArguments<AzureBlobStorage.Options>(args);
+            var result = Parser.Default.ParseArguments<Options>(args);
             if (result.Tag == ParserResultType.NotParsed)
             {
                 return 1;
