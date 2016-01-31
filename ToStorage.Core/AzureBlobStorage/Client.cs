@@ -8,20 +8,20 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
     public class Client
     {
-        public async Task UploadAsync(string account, string key, UploadRequest request)
+        public async Task<UploadResult> UploadAsync(string account, string key, UploadRequest request)
         {
             var storageCredentials = new StorageCredentials(account, key);
             var cloudStorageAccount = new CloudStorageAccount(storageCredentials, true);
-            await UploadAsync(cloudStorageAccount, request).ConfigureAwait(false);
+            return await UploadAsync(cloudStorageAccount, request).ConfigureAwait(false);
         }
 
-        public async Task UploadAsync(string connectionString, UploadRequest request)
+        public async Task<UploadResult> UploadAsync(string connectionString, UploadRequest request)
         {
             CloudStorageAccount cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
-            await UploadAsync(cloudStorageAccount, request).ConfigureAwait(false);
+            return await UploadAsync(cloudStorageAccount, request).ConfigureAwait(false);
         }
 
-        private async Task UploadAsync(CloudStorageAccount account, UploadRequest options)
+        private async Task<UploadResult> UploadAsync(CloudStorageAccount account, UploadRequest options)
         {
             // initialize
             var trace = options.Trace;
@@ -72,12 +72,17 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 trace.WriteLine(" done.");
             }
 
+            var result = new UploadResult {DirectUrl = directBlob.Uri};
+
             trace.WriteLine();
             trace.WriteLine($"Direct: {directBlob.Uri}");
             if (latestBlob != null)
             {
+                result.LatestUrl = latestBlob.Uri;
                 trace.WriteLine($"Latest: {latestBlob.Uri}");
             }
+
+            return result;
         }
     }
 }
