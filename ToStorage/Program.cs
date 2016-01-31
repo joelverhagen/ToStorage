@@ -30,26 +30,29 @@ namespace Knapcode.ToStorage
 
             // build the implementation models
             var client = new Client();
-            var request = new UploadRequest
+            using (var stdin = Console.OpenStandardInput())
             {
-                Container = options.Container,
-                ContentType = options.ContentType,
-                PathFormat = options.PathFormat,
-                UpdateLatest = options.UpdateLatest,
-                Stream = Console.OpenStandardInput(),
-                Trace = Console.Out
-            };
+                var request = new UploadRequest
+                {
+                    Container = options.Container,
+                    ContentType = options.ContentType,
+                    PathFormat = options.PathFormat,
+                    UpdateLatest = options.UpdateLatest,
+                    Stream = stdin,
+                    Trace = Console.Out
+                };
 
-            // upload
-            if (options.ConnectionString != null)
-            {
-                await client.UploadAsync(options.ConnectionString, request).ConfigureAwait(false);
+                // upload
+                if (options.ConnectionString != null)
+                {
+                    await client.UploadAsync(options.ConnectionString, request).ConfigureAwait(false);
+                }
+                else
+                {
+                    await client.UploadAsync(options.Account, options.Key, request).ConfigureAwait(false);
+                }
             }
-            else
-            {
-                await client.UploadAsync(options.Account, options.Key, request).ConfigureAwait(false);
-            }
-            
+
             return 0;
         }
     }
