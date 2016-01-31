@@ -17,6 +17,7 @@ If (-Not (Test-Path $nugetPath)) {
 
 # install packages
 & $nugetPath restore $solutionPath -SolutionDirectory $rootPath
+& $nugetPath restore (Join-Path $buildPath "packages.config") -SolutionDirectory $rootPath
 
 # find ilmerge
 $ilmergePath = Get-ChildItem (Join-Path $rootPath $ilmergePattern) -Recurse
@@ -27,4 +28,6 @@ if (!$ilmergePath) {
 $ilmergePath = $ilmergePath.FullName
 
 # build
+& $msbuildPath $solutionPath /t:Rebuild /p:Configuration=Debug
 & $msbuildPath $solutionPath /t:Rebuild /p:Configuration=Release
+
