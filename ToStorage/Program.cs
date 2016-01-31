@@ -22,7 +22,7 @@ namespace Knapcode.ToStorage
             }
 
             var options = result.MapResult(o => o, e => null);
-            if ((options.Account == null && options.Key == null) || options.ConnectionString == null)
+            if ((options.Account == null || options.Key == null) && options.ConnectionString == null)
             {
                 Console.WriteLine("Either a connection string must be specified, or the account and key.");
                 return 1;
