@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="AzureBlobStorage\Client.cs" />
     <Compile Include="AzureBlobStorage\Options.cs" />
+    <Compile Include="AzureBlobStorage\UploadRequest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

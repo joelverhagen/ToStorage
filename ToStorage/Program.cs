@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CommandLine;
-using Knapcode.ToStorage.AzureBlobStorage;
 
 namespace Knapcode.ToStorage
 {
@@ -15,15 +14,40 @@ namespace Knapcode.ToStorage
         public static async Task<int> MainAsync(string[] args)
         {
             // parse options
-            var result = Parser.Default.ParseArguments<Options>(args);
+            var result = Parser.Default.ParseArguments<AzureBlobStorage.Options>(args);
             if (result.Tag == ParserResultType.NotParsed)
             {
                 return 1;
             }
 
             var options = result.MapResult(o => o, e => null);
+            if ((options.Account == null && options.Key == null) || options.ConnectionString == null)
+            {
+                Console.WriteLine("Either a connection string must be specified, or the account and key.");
+                return 1;
+            }
+
+            // build the implementation models
             var client = new AzureBlobStorage.Client();
-            await client.UploadAsync(options, Console.OpenStandardInput(), Console.Out);
+            var request = new AzureBlobStorage.UploadRequest
+            {
+                Container = options.Container,
+                ContentType = options.ContentType,
+                PathFormat = options.PathFormat,
+                UpdateLatest = options.UpdateLatest,
+                Stream = Console.OpenStandardInput(),
+                Trace = Console.Out
+            };
+
+            // upload
+            if (options.ConnectionString != null)
+            {
+                await client.UploadAsync(options.ConnectionString, request).ConfigureAwait(false);
+            }
+            else
+            {
+                await client.UploadAsync(options.Account, options.Key, request).ConfigureAwait(false);
+            }
             
             return 0;
         }

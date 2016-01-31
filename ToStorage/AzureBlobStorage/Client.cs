@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -9,32 +8,32 @@ namespace Knapcode.ToStorage.AzureBlobStorage
 {
     public class Client
     {
-        public async Task UploadAsync(Options options, Stream stream, TextWriter trace)
+        public async Task UploadAsync(string account, string key, UploadRequest request)
+        {
+            var storageCredentials = new StorageCredentials(account, key);
+            var cloudStorageAccount = new CloudStorageAccount(storageCredentials, true);
+            await UploadAsync(cloudStorageAccount, request).ConfigureAwait(false);
+        }
+
+        public async Task UploadAsync(string connectionString, UploadRequest request)
+        {
+            CloudStorageAccount cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
+            await UploadAsync(cloudStorageAccount, request).ConfigureAwait(false);
+        }
+
+        private async Task UploadAsync(CloudStorageAccount account, UploadRequest options)
         {
             // initialize
-            trace.Write("Initializing...");
-            CloudStorageAccount cloudStorageAccount;
-            if (options.ConnectionString != null)
-            {
-                cloudStorageAccount = CloudStorageAccount.Parse(options.ConnectionString);
-            }
-            else if (options.Account != null && options.Key != null)
-            {
-                var storageCredentials = new StorageCredentials(options.Account, options.Key);
-                cloudStorageAccount = new CloudStorageAccount(storageCredentials, true);
-            }
-            else
-            {
-                throw new ArgumentException("A connection string or account and key must be specified.", nameof(options));
-            }
+            var trace = options.Trace;
+            options.Trace.Write("Initializing...");
 
-            var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
+            var cloudBlobClient = account.CreateCloudBlobClient();
             var cloudBlobContainer = cloudBlobClient.GetContainerReference(options.Container);
 
             await cloudBlobContainer.CreateIfNotExistsAsync(
                 BlobContainerPublicAccessType.Blob,
                 new BlobRequestOptions(),
-                null);
+                null).ConfigureAwait(false);
             trace.WriteLine(" done.");
 
             string directPath = string.Format(options.PathFormat, DateTimeOffset.UtcNow.ToString("yyyy.MM.dd.HH.mm.ss"));
@@ -42,9 +41,9 @@ namespace Knapcode.ToStorage.AzureBlobStorage
             var directBlob = cloudBlobContainer.GetBlockBlobReference(directPath);
 
             // upload the blob
-            using (var blobStream = await directBlob.OpenWriteAsync())
+            using (var blobStream = await directBlob.OpenWriteAsync().ConfigureAwait(false))
             {
-                await stream.CopyToAsync(blobStream);
+                await options.Stream.CopyToAsync(blobStream).ConfigureAwait(false);
             }
 
             trace.WriteLine(" done.");
@@ -54,7 +53,7 @@ namespace Knapcode.ToStorage.AzureBlobStorage
             {
                 trace.Write("Setting the content type...");
                 directBlob.Properties.ContentType = options.ContentType;
-                await directBlob.SetPropertiesAsync();
+                await directBlob.SetPropertiesAsync().ConfigureAwait(false);
                 trace.WriteLine(" done.");
             }
 
@@ -65,10 +64,10 @@ namespace Knapcode.ToStorage.AzureBlobStorage
                 var latestPath = string.Format(options.PathFormat, "latest");
                 trace.Write($"Updating {latestPath} to the latest blob...");
                 latestBlob = cloudBlobContainer.GetBlockBlobReference(latestPath);
-                await latestBlob.StartCopyAsync(directBlob);
+                await latestBlob.StartCopyAsync(directBlob).ConfigureAwait(false);
                 while (latestBlob.CopyState.Status == CopyStatus.Pending)
                 {
-                    await Task.Delay(100);
+                    await Task.Delay(100).ConfigureAwait(false);
                 }
                 trace.WriteLine(" done.");
             }
