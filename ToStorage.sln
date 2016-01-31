@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage", "ToStorage\ToStorage.csproj", "{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage.Tool", "ToStorage\ToStorage.Tool.csproj", "{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FC05EAF9-8F03-4B4A-A277-0FEEF5A38B28}"
 	ProjectSection(SolutionItems) = preProject

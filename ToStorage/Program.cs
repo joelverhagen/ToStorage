@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CommandLine;
-using Knapcode.ToStorage.AzureBlobStorage;
+using Knapcode.ToStorage.Tool.AzureBlobStorage;
 using Knapcode.ToStorage.Core.AzureBlobStorage;
 
-namespace Knapcode.ToStorage
+namespace Knapcode.ToStorage.Tool
 {
     public class Program
     {

@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace Knapcode.ToStorage.AzureBlobStorage
+namespace Knapcode.ToStorage.Tool.AzureBlobStorage
 {
     public class Options
     {
