@@ -5,14 +5,14 @@ using Knapcode.ToStorage.Core.AzureBlobStorage;
 
 namespace Knapcode.ToStorage
 {
-    class Program
+    public class Program
     {
-        static int Main(string[] args)
+        public static int Main(string[] args)
         {
             return MainAsync(args).Result;
         }
 
-        public static async Task<int> MainAsync(string[] args)
+        private static async Task<int> MainAsync(string[] args)
         {
             // parse options
             var result = Parser.Default.ParseArguments<AzureBlobStorage.Options>(args);
