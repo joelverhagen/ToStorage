@@ -15,19 +15,22 @@ ping google.com | ToStorage -a ACCOUNT -k KEY -c CONTAINER
 
 ```
 Initializing... done.
-Uploading the blob to 2016.01.29.15.48.16.txt... done.
+Uploading the blob to 2016.02.01.00.23.47.txt... done.
 Setting the content type... done.
 Updating latest.txt to the latest blob... done.
 
-Direct: https://ACCOUNT.blob.core.windows.net/CONTAINER/2016.01.29.15.48.16.txt
+Direct: https://ACCOUNT.blob.core.windows.net/CONTAINER/2016.02.01.00.23.47.txt
 Latest: https://ACCOUNT.blob.core.windows.net/CONTAINER/latest.txt
 ```
 
 ## Usage
 
 ```
-Knapcode 0.0.0.0
+Knapcode.ToStorage 1.0.0.0
 (no copyright)
+
+ERROR(S):
+  Required option 'c, container' is missing.
 
   -k, --key                  The key used to access Azure Storage.
 
@@ -37,8 +40,8 @@ Knapcode 0.0.0.0
 
   -c, --container            Required. The container name.
 
-  -f, --path-format          Required. (Default: {0}.txt) The format to use
-                             when building the path.
+  -f, --path-format          (Default: {0}.txt) The format to use when building
+                             the path.
 
   -t, --content-type         (Default: text/plain) The content type to set on
                              the blob.
