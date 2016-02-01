@@ -35,16 +35,20 @@ if (-Not (Test-Path $artifactsPath)) {
 }
 
 # ilmerge
-$toolOutput = "ToStorage.Tool\bin\Release"
-$unmergedExePath = (Get-ChildItem (Join-Path $rootPath (Join-Path $toolOutput "*.exe")) | Select-Object -First 1).FullName
-$dependencies = Get-ChildItem (Join-Path $rootPath (Join-Path $toolOutput "*.dll")) | Select-Object -ExpandProperty FullName
-$ilmergeArguments = "/ndebug", ("/ver:" + $version + ".0"), ("/out:" + (Join-Path $artifactsPath "ToStorage.exe")), $unmergedExePath
+$originalTool = "ToStorage.Tool\bin\Release"
+$toolPath = Join-Path $artifactsPath "ToStorage.exe"
+$unmergedExePath = (Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.exe")) | Select-Object -First 1).FullName
+$dependencies = Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.dll")) | Select-Object -ExpandProperty FullName
+$ilmergeArguments = "/ndebug", ("/ver:" + $version + ".0"), ("/out:" + $toolPath), $unmergedExePath
 $ilmergeArguments += $dependencies
 
 & $ilmergePath $ilmergeArguments
 
-# NuGet pack Core
+# NuGet pack core
 & $nugetPath pack (Join-Path $rootPath "ToStorage.Core\ToStorage.Core.csproj") -OutputDirectory $artifactsPath -Version $version -Prop Configuration=Release
 
-# NuGet pack Tool
+# NuGet pack tool
 & $nugetPath pack (Join-Path $rootPath "ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $version -BasePath $rootPath
+
+# zip tool
+Compress-Archive -Path $toolPath -DestinationPath (Join-Path $artifactsPath ("ToStorage." + $version + ".zip")) -CompressionLevel Optimal -Force
