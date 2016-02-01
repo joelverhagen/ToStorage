@@ -1,0 +1,15 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Knapcode.ToStorage.Core</id>
+    <version>$version$</version>
+    <authors>Joel Verhagen</authors>
+    <licenseUrl>https://raw.githubusercontent.com/joelverhagen/tostorage/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/joelverhagen/tostorage</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Pipe stuff to storage.</description>
+    <dependencies>
+      <dependency id="WindowsAzure.Storage" version="6.2.0" />
+    </dependencies>
+  </metadata>
+</package>
