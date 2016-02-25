@@ -119,7 +119,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 request.Trace.WriteLine($"No blob exists at '{latestBlob.Uri}'.");
             }
 
-            return await latestBlob.OpenWriteAsync();
+            return await latestBlob.OpenReadAsync();
         }
 
         private static string GetLatestPath(string pathFormat)
