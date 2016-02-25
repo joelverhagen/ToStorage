@@ -4,13 +4,7 @@ namespace Knapcode.ToStorage.Tool.AzureBlobStorage
 {
     public class Options
     {
-        [Option('k', "key", Required = false, HelpText = "The key used to access Azure Storage.")]
-        public string Key { get; set; }
-
-        [Option('a', "account", Required = false, HelpText = "The Azure Storage account name.")]
-        public string Account { get; set; }
-
-        [Option('s', "connection-string", Required = false, HelpText = "The connection string for Azure Storage.")]
+        [Option('s', "connection-string", Required = true, HelpText = "The connection string for Azure Storage.")]
         public string ConnectionString { get; set; }
 
         [Option('c', "container", Required = true, HelpText = "The container name.")]

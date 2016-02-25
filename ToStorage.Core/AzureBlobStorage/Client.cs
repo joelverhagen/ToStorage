@@ -2,58 +2,16 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
     public class Client
     {
-        public async Task<UploadResult> UploadAsync(string account, string key, UploadRequest request)
-        {
-            var context = new CloudContext(account, key, request.Container);
-            return await UploadAsync(context, request).ConfigureAwait(false);
-        }
-
         public async Task<UploadResult> UploadAsync(string connectionString, UploadRequest request)
         {
             var context = new CloudContext(connectionString, request.Container);
-            return await UploadAsync(context, request).ConfigureAwait(false);
-        }
 
-        public async Task<Stream> GetLatestStreamAsync(string account, string key, GetLatestRequest request)
-        {
-            var context = new CloudContext(account, key, request.Container);
-            return await GetLatestStreamAsync(request, context);
-        }
-
-        public async Task<Stream> GetLatestStreamAsync(string connectionString, GetLatestRequest request)
-        {
-            var context = new CloudContext(connectionString, request.Container);
-            return await GetLatestStreamAsync(request, context);
-        }
-
-        private static async Task<Stream> GetLatestStreamAsync(GetLatestRequest request, CloudContext context)
-        {
-            if (!await context.BlobContainer.ExistsAsync())
-            {
-                request.Trace.WriteLine($"Blob container '{context.BlobContainer.Name}' in account '{context.StorageAccount.Credentials.AccountName}' does not exist.");
-                return null;
-            }
-
-            var latestPath = GetLatestPath(request.PathFormat);
-            var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
-
-            if (!await latestBlob.ExistsAsync())
-            {
-                request.Trace.WriteLine($"No blob exists at '{latestBlob.Uri}'.");
-            }
-
-            return await latestBlob.OpenWriteAsync();
-        }
-
-        private async Task<UploadResult> UploadAsync(CloudContext context, UploadRequest request)
-        {
             // initialize
             request.Trace.Write("Initializing...");
 
@@ -98,7 +56,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 request.Trace.WriteLine(" done.");
             }
 
-            var result = new UploadResult {DirectUrl = directBlob.Uri};
+            var result = new UploadResult { DirectUrl = directBlob.Uri };
             request.Trace.WriteLine();
             request.Trace.WriteLine($"Direct: {directBlob.Uri}");
             if (latestBlob != null)
@@ -110,6 +68,27 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             return result;
         }
 
+        public async Task<Stream> GetLatestStreamAsync(string connectionString, GetLatestRequest request)
+        {
+            var context = new CloudContext(connectionString, request.Container);
+
+            if (!await context.BlobContainer.ExistsAsync())
+            {
+                request.Trace.WriteLine($"Blob container '{context.BlobContainer.Name}' in account '{context.StorageAccount.Credentials.AccountName}' does not exist.");
+                return null;
+            }
+
+            var latestPath = GetLatestPath(request.PathFormat);
+            var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
+
+            if (!await latestBlob.ExistsAsync())
+            {
+                request.Trace.WriteLine($"No blob exists at '{latestBlob.Uri}'.");
+            }
+
+            return await latestBlob.OpenWriteAsync();
+        }
+
         private static string GetLatestPath(string pathFormat)
         {
             var latestPath = string.Format(pathFormat, "latest");
@@ -118,21 +97,11 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 
         private class CloudContext
         {
-            private CloudContext(string container)
-            {
-                BlobClient = StorageAccount.CreateCloudBlobClient();
-                BlobContainer = BlobClient.GetContainerReference(container);
-            }
-
-            public CloudContext(string connectionString, string container) : this(container)
+            public CloudContext(string connectionString, string container)
             {
                 StorageAccount = CloudStorageAccount.Parse(connectionString);
-            }
-
-            public CloudContext(string account, string key, string container) : this(container)
-            {
-                var storageCredentials = new StorageCredentials(account, key);
-                StorageAccount = new CloudStorageAccount(storageCredentials, true);
+                BlobClient = StorageAccount.CreateCloudBlobClient();
+                BlobContainer = BlobClient.GetContainerReference(container);
             }
 
             public CloudStorageAccount StorageAccount { get; }

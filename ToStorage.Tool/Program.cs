@@ -23,11 +23,6 @@ namespace Knapcode.ToStorage.Tool
             }
 
             var options = result.MapResult(o => o, e => null);
-            if ((options.Account == null || options.Key == null) && options.ConnectionString == null)
-            {
-                Console.WriteLine("Either a connection string must be specified, or the account and key.");
-                return 1;
-            }
 
             // build the implementation models
             var client = new Client();
@@ -44,14 +39,7 @@ namespace Knapcode.ToStorage.Tool
                 };
 
                 // upload
-                if (options.ConnectionString != null)
-                {
-                    await client.UploadAsync(options.ConnectionString, request).ConfigureAwait(false);
-                }
-                else
-                {
-                    await client.UploadAsync(options.Account, options.Key, request).ConfigureAwait(false);
-                }
+                await client.UploadAsync(options.ConnectionString, request).ConfigureAwait(false);
             }
 
             return 0;
