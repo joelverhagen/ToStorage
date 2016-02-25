@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CommandLine;
+using Knapcode.ToStorage.Core.Abstractions;
 using Knapcode.ToStorage.Tool.AzureBlobStorage;
 using Knapcode.ToStorage.Core.AzureBlobStorage;
 
@@ -25,7 +26,7 @@ namespace Knapcode.ToStorage.Tool
             var options = result.MapResult(o => o, e => null);
 
             // build the implementation models
-            var client = new Client();
+            var client = new Client(new SystemTime());
             using (var stdin = Console.OpenStandardInput())
             {
                 var request = new UploadRequest
@@ -33,7 +34,7 @@ namespace Knapcode.ToStorage.Tool
                     Container = options.Container,
                     ContentType = options.ContentType,
                     PathFormat = options.PathFormat,
-                    UpdateLatest = options.UpdateLatest,
+                    UploadLatest = options.UpdateLatest,
                     Stream = stdin,
                     Trace = Console.Out
                 };

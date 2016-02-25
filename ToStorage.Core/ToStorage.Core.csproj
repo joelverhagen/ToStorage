@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abstractions\SystemTime.cs" />
     <Compile Include="AzureBlobStorage\Client.cs" />
     <Compile Include="AzureBlobStorage\GetLatestRequest.cs" />
     <Compile Include="AzureBlobStorage\UploadRequest.cs" />
