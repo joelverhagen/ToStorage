@@ -6,7 +6,13 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
-    public class Client
+    public interface IClient
+    {
+        Task<UploadResult> UploadAsync(string connectionString, UploadRequest request);
+        Task<Stream> GetLatestStreamAsync(string connectionString, GetLatestRequest request);
+    }
+
+    public class Client : IClient
     {
         private readonly ISystemTime _systemTime;
 
