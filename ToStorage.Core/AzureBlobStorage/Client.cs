@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Knapcode.ToStorage.Core.Abstractions;
@@ -10,6 +11,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
     {
         Task<UploadResult> UploadAsync(string connectionString, UploadRequest request);
         Task<Stream> GetLatestStreamAsync(string connectionString, GetLatestRequest request);
+        Uri GetLatestUri(string connectionString, GetLatestRequest request);
     }
 
     public class Client : IClient
@@ -70,13 +72,13 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 
             if (directBlob != null)
             {
-                result.DirectUrl = directBlob.Uri;
+                result.DirectUri = directBlob.Uri;
                 request.Trace.WriteLine($"Direct: {directBlob.Uri}");
             }
             
             if (latestBlob != null)
             {
-                result.LatestUrl = latestBlob.Uri;
+                result.LatestUri = latestBlob.Uri;
                 request.Trace.WriteLine($"Latest: {latestBlob.Uri}");
             }
 
@@ -126,6 +128,16 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             }
 
             return await latestBlob.OpenReadAsync();
+        }
+
+        public Uri GetLatestUri(string connectionString, GetLatestRequest request)
+        {
+            var context = new CloudContext(connectionString, request.Container);
+            
+            var latestPath = GetLatestPath(request.PathFormat);
+            var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
+
+            return latestBlob.Uri;
         }
 
         private static string GetLatestPath(string pathFormat)
