@@ -113,21 +113,23 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         {
             var context = new CloudContext(connectionString, request.Container);
 
-            if (!await context.BlobContainer.ExistsAsync())
-            {
-                request.Trace.WriteLine($"Blob container '{context.BlobContainer.Name}' in account '{context.StorageAccount.Credentials.AccountName}' does not exist.");
-                return null;
-            }
-
             var latestPath = GetLatestPath(request.PathFormat);
             var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
 
-            if (!await latestBlob.ExistsAsync())
+            try
             {
-                request.Trace.WriteLine($"No blob exists at '{latestBlob.Uri}'.");
+                return await latestBlob.OpenReadAsync();
             }
+            catch (StorageException e)
+            {
+                if (e.RequestInformation.HttpStatusCode == 404)
+                {
+                    request.Trace.WriteLine($"The stream could not be found due to the following error: {e.RequestInformation.HttpStatusMessage}");
+                    return null;
+                }
 
-            return await latestBlob.OpenReadAsync();
+                throw;
+            }
         }
 
         public Uri GetLatestUri(string connectionString, GetLatestRequest request)

@@ -111,6 +111,37 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             }
         }
 
+        [Fact]
+        public async Task Client_ReturnsNullOnMissingLatest()
+        {
+            // Arrange
+            var tc = new TestContext();
+            await tc.Client.UploadAsync(tc.ConnectionString, tc.UploadRequest);
+            tc.GetLatestRequest.PathFormat = "not-found/{0}.txt";
+
+            // Act
+            using (var stream = await tc.Client.GetLatestStreamAsync(tc.ConnectionString, tc.GetLatestRequest))
+            {
+                // Assert
+                Assert.Null(stream);
+            }
+        }
+
+        [Fact]
+        public async Task Client_ReturnsNullOnMissingContainer()
+        {
+            // Arrange
+            var tc = new TestContext();
+            tc.GetLatestRequest.Container = "not-found-" + Guid.NewGuid();
+
+            // Act
+            using (var stream = await tc.Client.GetLatestStreamAsync(tc.ConnectionString, tc.GetLatestRequest))
+            {
+                // Assert
+                Assert.Null(stream);
+            }
+        }
+
         private class TestContext
         {
             public TestContext()
