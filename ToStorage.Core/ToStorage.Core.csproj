@@ -66,8 +66,11 @@
   <ItemGroup>
     <Compile Include="Abstractions\SystemTime.cs" />
     <Compile Include="AzureBlobStorage\Client.cs" />
+    <Compile Include="AzureBlobStorage\Request.cs" />
     <Compile Include="AzureBlobStorage\StreamResult.cs" />
     <Compile Include="AzureBlobStorage\GetLatestRequest.cs" />
+    <Compile Include="AzureBlobStorage\UniqueClient.cs" />
+    <Compile Include="AzureBlobStorage\UniqueUploadRequest.cs" />
     <Compile Include="AzureBlobStorage\UploadRequest.cs" />
     <Compile Include="AzureBlobStorage\UploadResult.cs" />
     <Compile Include="AzureBlobStorage\UriResult.cs" />
