@@ -9,9 +9,9 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
     public interface IClient
     {
-        Task<UploadResult> UploadAsync(string connectionString, UploadRequest request);
-        Task<Stream> GetLatestStreamAsync(string connectionString, GetLatestRequest request);
-        Uri GetLatestUri(string connectionString, GetLatestRequest request);
+        Task<UploadResult> UploadAsync(UploadRequest request);
+        Task<Stream> GetLatestStreamAsync(GetLatestRequest request);
+        Uri GetLatestUri(GetLatestRequest request);
     }
 
     public class Client : IClient
@@ -23,9 +23,9 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             _systemTime = systemTime;
         }
 
-        public async Task<UploadResult> UploadAsync(string connectionString, UploadRequest request)
+        public async Task<UploadResult> UploadAsync(UploadRequest request)
         {
-            var context = new CloudContext(connectionString, request.Container);
+            var context = new CloudContext(request.ConnectionString, request.Container);
 
             // initialize
             request.Trace.Write("Initializing...");
@@ -109,9 +109,9 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             return blob;
         }
 
-        public async Task<Stream> GetLatestStreamAsync(string connectionString, GetLatestRequest request)
+        public async Task<Stream> GetLatestStreamAsync(GetLatestRequest request)
         {
-            var context = new CloudContext(connectionString, request.Container);
+            var context = new CloudContext(request.ConnectionString, request.Container);
 
             var latestPath = GetLatestPath(request.PathFormat);
             var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
@@ -132,9 +132,9 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             }
         }
 
-        public Uri GetLatestUri(string connectionString, GetLatestRequest request)
+        public Uri GetLatestUri(GetLatestRequest request)
         {
-            var context = new CloudContext(connectionString, request.Container);
+            var context = new CloudContext(request.ConnectionString, request.Container);
             
             var latestPath = GetLatestPath(request.PathFormat);
             var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);

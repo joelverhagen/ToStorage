@@ -31,6 +31,7 @@ namespace Knapcode.ToStorage.Tool
             {
                 var request = new UploadRequest
                 {
+                    ConnectionString = options.ConnectionString,
                     Container = options.Container,
                     ContentType = options.ContentType,
                     PathFormat = options.PathFormat,
@@ -40,7 +41,7 @@ namespace Knapcode.ToStorage.Tool
                 };
 
                 // upload
-                await client.UploadAsync(options.ConnectionString, request).ConfigureAwait(false);
+                await client.UploadAsync(request).ConfigureAwait(false);
             }
 
             return 0;
