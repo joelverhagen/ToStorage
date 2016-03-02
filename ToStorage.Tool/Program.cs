@@ -36,7 +36,6 @@ namespace Knapcode.ToStorage.Tool
 
             // build the implementation models
             using (var stdin = Console.OpenStandardInput())
-            // using (var stdin = new FileStream(@"C:\Users\jver\Dropbox\Programming\ToStorage\artifacts\foo.txt", FileMode.Open))
             {
                 var client = new Client(new SystemTime());
 
