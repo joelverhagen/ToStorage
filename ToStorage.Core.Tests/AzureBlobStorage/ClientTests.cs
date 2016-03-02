@@ -240,8 +240,6 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
             public GetLatestRequest GetLatestRequest { get; }
 
-            public string ConnectionString { get; }
-
             public string Content { get; set; }
 
             public UploadRequest UploadRequest { get; }

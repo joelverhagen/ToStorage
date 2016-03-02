@@ -2,8 +2,12 @@
 
 namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
-    public class UploadRequest : Request
+    public class UploadRequest
     {
+        public string ConnectionString { get; set; }
+        public string Container { get; set; }
+        public string PathFormat { get; set; }
+        public TextWriter Trace { get; set; }
         public string ContentType { get; set; }
         public bool UploadDirect { get; set; }
         public bool UploadLatest { get; set; }

@@ -32,17 +32,25 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 using (var currentResult = await _innerClient.GetLatestStreamAsync(getLatestRequest))
                 {
                     // return nothing if the streams are equivalent
-                    if (currentResult != null && !await request.CompareAsync(currentResult.Stream))
+                    if (currentResult != null && !await request.IsUniqueAsync(currentResult))
                     {
                         return null;
                     }
 
-                    if (currentResult != null)
+                    var uploadRequest = new UploadRequest
                     {
-                        request.ETag = currentResult.ETag;
-                    }
+                        ConnectionString = request.ConnectionString,
+                        ETag = currentResult?.ETag,
+                        Stream = request.Stream,
+                        PathFormat = request.PathFormat,
+                        Container = request.Container,
+                        Trace = request.Trace,
+                        UploadDirect = request.UploadDirect,
+                        UploadLatest = true,
+                        ContentType = request.ContentType
+                    };
 
-                    return await _innerClient.UploadAsync(request);
+                    return await _innerClient.UploadAsync(uploadRequest);
                 }
             }
         }
