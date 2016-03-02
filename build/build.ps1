@@ -1,5 +1,5 @@
 # constants
-$version = "0.4.1"
+$version = "0.4.2"
 $msbuildPath = Join-Path ${env:ProgramFiles(x86)} "MSBuild\14.0\Bin\msbuild.exe"
 $nugetUrl = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 
