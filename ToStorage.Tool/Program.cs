@@ -2,8 +2,10 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
+using Knapcode.ToStorage.Core;
 using Knapcode.ToStorage.Core.Abstractions;
 using Knapcode.ToStorage.Tool.AzureBlobStorage;
 using Knapcode.ToStorage.Core.AzureBlobStorage;
@@ -58,7 +60,7 @@ namespace Knapcode.ToStorage.Tool
                             Stream = buffer,
                             IsUniqueAsync = async x =>
                             {
-                                var equals = await EqualsAsync(buffer, x.Stream);
+                                var equals = await new AsyncStreamEqualityComparer().EqualsAsync(buffer, x.Stream, CancellationToken.None);
                                 buffer.Seek(0, SeekOrigin.Begin);
                                 return !equals;
                             },
@@ -92,39 +94,6 @@ namespace Knapcode.ToStorage.Tool
             }
 
             return 0;
-        }
-
-        private static async Task<bool> EqualsAsync(Stream streamA, Stream streamB)
-        {
-            var bufferA = new byte[8192];
-            var bufferB = new byte[bufferA.Length];
-            int readA = 1;
-            int readB = 1;
-            while (readA > 0 && readB > 0)
-            {
-                readA = await FillBufferAsync(streamA, bufferA);
-                readB = await FillBufferAsync(streamB, bufferB);
-
-                if(readA != readB || !bufferA.Take(readA).SequenceEqual(bufferB.Take(readB)))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static async Task<int> FillBufferAsync(Stream stream, byte[] buffer)
-        {
-            int offset = 0;
-            int read = 1;
-            while (offset < buffer.Length && read > 0)
-            {
-                read = await stream.ReadAsync(buffer, offset, buffer.Length - offset);
-                offset += read;
-            }
-
-            return offset;
         }
     }
 }
