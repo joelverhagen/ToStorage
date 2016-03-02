@@ -8,7 +8,7 @@ Takes `stdin` and writes it to Azure Blob Storage. Uploads two blobs by default:
 ### Execute
 
 ```
-ping google.com | ToStorage -a ACCOUNT -k KEY -c CONTAINER
+ping google.com | ToStorage -s CONNECTION_STRING -c CONTAINER
 ```
 
 ### Output
@@ -26,17 +26,10 @@ Latest: https://ACCOUNT.blob.core.windows.net/CONTAINER/latest.txt
 ## Usage
 
 ```
-Knapcode.ToStorage 1.0.0.0
+Knapcode.ToStorage 0.0.0.0
 (no copyright)
 
-ERROR(S):
-  Required option 'c, container' is missing.
-
-  -k, --key                  The key used to access Azure Storage.
-
-  -a, --account              The Azure Storage account name.
-
-  -s, --connection-string    The connection string for Azure Storage.
+  -s, --connection-string    Required. The connection string for Azure Storage.
 
   -c, --container            Required. The container name.
 
@@ -48,6 +41,12 @@ ERROR(S):
 
   -l, --update-latest        (Default: true) Whether or not to set the 'latest'
                              blob.
+
+  -d, --update-direct        (Default: true) Whether or not to set the 'direct'
+                             blob.
+
+  -u, --only-unique          (Default: false) Whether or not to only update the
+                             'latest' blob if the 'latest' blob will change.
 
   --help                     Display this help screen.
 

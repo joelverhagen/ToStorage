@@ -18,5 +18,11 @@ namespace Knapcode.ToStorage.Tool.AzureBlobStorage
 
         [Option('l', "update-latest", Required = false, Default = true, HelpText = "Whether or not to set the 'latest' blob.")]
         public bool UpdateLatest { get; set; }
+
+        [Option('d', "update-direct", Required = false, Default = true, HelpText = "Whether or not to set the 'direct' blob.")]
+        public bool UpdateDirect { get; set; }
+
+        [Option('u', "only-unique", Required = false, Default = false, HelpText = "Whether or not to only update the 'latest' blob if the 'latest' blob will change.")]
+        public bool OnlyUnique { get; set; }
     }
 }
