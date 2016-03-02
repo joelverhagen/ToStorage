@@ -34,7 +34,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             await context.BlobContainer.CreateIfNotExistsAsync(
                 BlobContainerPublicAccessType.Blob,
                 new BlobRequestOptions(),
-                null).ConfigureAwait(false);
+                null);
             request.Trace.WriteLine(" done.");
 
             // set the direct
@@ -58,10 +58,13 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 {
                     request.Trace.Write($"Copying the direct blob to the latest blob at '{latestPath}'...");
                     latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
-                    await latestBlob.StartCopyAsync(directBlob).ConfigureAwait(false);
+                    var sourceAccessCondition = new AccessCondition {IfMatchETag = directBlob.Properties.ETag};
+                    var destAccessCondition = new AccessCondition {IfMatchETag = request.ETag};
+                    await latestBlob.StartCopyAsync(directBlob, sourceAccessCondition, destAccessCondition, null, null);
                     while (latestBlob.CopyState.Status == CopyStatus.Pending)
                     {
-                        await Task.Delay(100).ConfigureAwait(false);
+                        await Task.Delay(100);
+                        await latestBlob.ExistsAsync();
                     }
                     request.Trace.WriteLine(" done.");
                 }
@@ -94,10 +97,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             var blob = context.BlobContainer.GetBlockBlobReference(blobPath);
 
             // upload the blob
-            using (var blobStream = await blob.OpenWriteAsync().ConfigureAwait(false))
-            {
-                await request.Stream.CopyToAsync(blobStream).ConfigureAwait(false);
-            }
+            await blob.UploadFromStreamAsync(request.Stream);
             request.Trace.WriteLine(" done.");
 
             // set the content type
@@ -105,7 +105,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             {
                 request.Trace.Write($"Setting the content type of '{blobPath}'...");
                 blob.Properties.ContentType = request.ContentType;
-                await blob.SetPropertiesAsync().ConfigureAwait(false);
+                await blob.SetPropertiesAsync();
                 request.Trace.WriteLine(" done.");
             }
 

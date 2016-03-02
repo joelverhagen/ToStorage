@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Knapcode.ToStorage.Core.Abstractions;
 using Knapcode.ToStorage.Core.AzureBlobStorage;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             var tc = new TestContext();
 
             // Act
-            var uriResult = await tc.Client.GetLatestUriResultAsync(tc.GetLatestRequest);
+            var uriResult = await tc.Target.GetLatestUriResultAsync(tc.GetLatestRequest);
 
             // Assert
             Assert.Null(uriResult);
@@ -30,10 +31,10 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
         {
             // Arrange
             var tc = new TestContext();
-            await tc.Client.UploadAsync(tc.UploadRequest);
+            await tc.Target.UploadAsync(tc.UploadRequest);
 
             // Act
-            var uriResult = await tc.Client.GetLatestUriResultAsync(tc.GetLatestRequest);
+            var uriResult = await tc.Target.GetLatestUriResultAsync(tc.GetLatestRequest);
 
             // Assert
             tc.VerifyUri(uriResult.Uri, "testpath/latest.txt");
@@ -47,10 +48,32 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             var tc = new TestContext();
 
             // Act
-            var uri = tc.Client.GetLatestUri(tc.GetLatestRequest);
+            var uri = tc.Target.GetLatestUri(tc.GetLatestRequest);
 
             // Assert
             tc.VerifyUri(uri, "testpath/latest.txt");
+        }
+
+        [Fact]
+        public async Task Client_DoesNotOverwriteLatestWithDifferentETag()
+        {
+            // Arrange
+            var tc = new TestContext();
+            tc.Content = "[1, 2]";
+            tc.UploadRequest.ContentType = "application/json";
+            tc.UploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+            var uploadResult = await tc.Target.UploadAsync(tc.UploadRequest);
+
+            tc.UploadRequest.ContentType = "text/plain";
+            tc.UploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes("foobar"));
+            tc.UploadRequest.ETag = "bad etag";
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<StorageException>(() => tc.Target.UploadAsync(tc.UploadRequest));
+            Assert.Equal(412, exception.RequestInformation.HttpStatusCode);
+
+            tc.UploadRequest.ContentType = "application/json";
+            await tc.VerifyContentAsync(uploadResult.LatestUri);
         }
 
         [Fact]
@@ -60,13 +83,13 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             var tc = new TestContext();
             tc.UploadRequest.ContentType = "application/json";
             tc.UploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes("[1, 2]"));
-            await tc.Client.UploadAsync(tc.UploadRequest);
+            await tc.Target.UploadAsync(tc.UploadRequest);
 
             tc.UploadRequest.ContentType = "text/plain";
             tc.UploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
 
             // Act
-            var uploadResult = await tc.Client.UploadAsync(tc.UploadRequest);
+            var uploadResult = await tc.Target.UploadAsync(tc.UploadRequest);
 
             // Assert
             Assert.NotNull(uploadResult);
@@ -83,7 +106,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             var tc = new TestContext();
 
             // Act
-            var uploadResult = await tc.Client.UploadAsync(tc.UploadRequest);
+            var uploadResult = await tc.Target.UploadAsync(tc.UploadRequest);
 
             // Assert
             Assert.NotNull(uploadResult);
@@ -101,7 +124,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             tc.UploadRequest.UploadLatest = false;
 
             // Act
-            var uploadResult = await tc.Client.UploadAsync(tc.UploadRequest);
+            var uploadResult = await tc.Target.UploadAsync(tc.UploadRequest);
 
             // Assert
             Assert.NotNull(uploadResult);
@@ -119,7 +142,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             tc.UploadRequest.UploadDirect = false;
 
             // Act
-            var uploadResult = await tc.Client.UploadAsync(tc.UploadRequest);
+            var uploadResult = await tc.Target.UploadAsync(tc.UploadRequest);
 
             // Assert
             Assert.NotNull(uploadResult);
@@ -134,10 +157,10 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
         {
             // Arrange
             var tc = new TestContext();
-            await tc.Client.UploadAsync(tc.UploadRequest);
+            await tc.Target.UploadAsync(tc.UploadRequest);
 
             // Act
-            using (var streamResult = await tc.Client.GetLatestStreamAsync(tc.GetLatestRequest))
+            using (var streamResult = await tc.Target.GetLatestStreamAsync(tc.GetLatestRequest))
             {
                 // Assert
                 Assert.NotNull(streamResult.ETag);
@@ -153,11 +176,11 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
         {
             // Arrange
             var tc = new TestContext();
-            await tc.Client.UploadAsync(tc.UploadRequest);
+            await tc.Target.UploadAsync(tc.UploadRequest);
             tc.GetLatestRequest.PathFormat = "not-found/{0}.txt";
 
             // Act
-            using (var stream = await tc.Client.GetLatestStreamAsync(tc.GetLatestRequest))
+            using (var stream = await tc.Target.GetLatestStreamAsync(tc.GetLatestRequest))
             {
                 // Assert
                 Assert.Null(stream);
@@ -172,7 +195,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             tc.GetLatestRequest.Container = "not-found-" + Guid.NewGuid();
 
             // Act
-            using (var stream = await tc.Client.GetLatestStreamAsync(tc.GetLatestRequest))
+            using (var stream = await tc.Target.GetLatestStreamAsync(tc.GetLatestRequest))
             {
                 // Assert
                 Assert.Null(stream);
@@ -212,18 +235,18 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                 SystemTime.Setup(x => x.UtcNow).Returns(UtcNow);
 
                 // target
-                Client = new Client(SystemTime.Object);
+                Target = new Client(SystemTime.Object);
             }
 
             public GetLatestRequest GetLatestRequest { get; }
 
             public string ConnectionString { get; }
 
-            public string Content { get; }
+            public string Content { get; set; }
 
             public UploadRequest UploadRequest { get; }
 
-            public Client Client { get; }
+            public Client Target { get; }
 
             public Mock<ISystemTime> SystemTime { get; }
 
@@ -240,6 +263,11 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             public async Task VerifyUriAndContentAsync(Uri uri, string endsWith)
             {
                 VerifyUri(uri, endsWith);
+                await VerifyContentAsync(uri);
+            }
+
+            public async Task VerifyContentAsync(Uri uri)
+            {
                 var response = await GetBlobAsync(uri);
                 Assert.Equal(UploadRequest.ContentType, response.Content.Headers.ContentType.ToString());
                 Assert.Equal(Content, await response.Content.ReadAsStringAsync());

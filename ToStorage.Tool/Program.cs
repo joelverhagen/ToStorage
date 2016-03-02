@@ -41,7 +41,7 @@ namespace Knapcode.ToStorage.Tool
                 };
 
                 // upload
-                await client.UploadAsync(request).ConfigureAwait(false);
+                await client.UploadAsync(request);
             }
 
             return 0;
