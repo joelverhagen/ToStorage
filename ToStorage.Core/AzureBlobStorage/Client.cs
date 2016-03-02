@@ -10,8 +10,9 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
     public interface IClient
     {
         Task<UploadResult> UploadAsync(UploadRequest request);
-        Task<Stream> GetLatestStreamAsync(GetLatestRequest request);
+        Task<StreamResult> GetLatestStreamAsync(GetLatestRequest request);
         Uri GetLatestUri(GetLatestRequest request);
+        Task<UriResult> GetLatestUriResultAsync(GetLatestRequest request);
     }
 
     public class Client : IClient
@@ -73,12 +74,14 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             if (directBlob != null)
             {
                 result.DirectUri = directBlob.Uri;
+                result.DirectETag = directBlob.Properties.ETag;
                 request.Trace.WriteLine($"Direct: {directBlob.Uri}");
             }
             
             if (latestBlob != null)
             {
                 result.LatestUri = latestBlob.Uri;
+                result.LatestETag = latestBlob.Properties.ETag;
                 request.Trace.WriteLine($"Latest: {latestBlob.Uri}");
             }
 
@@ -109,7 +112,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             return blob;
         }
 
-        public async Task<Stream> GetLatestStreamAsync(GetLatestRequest request)
+        public async Task<StreamResult> GetLatestStreamAsync(GetLatestRequest request)
         {
             var context = new CloudContext(request.ConnectionString, request.Container);
 
@@ -118,7 +121,12 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 
             try
             {
-                return await latestBlob.OpenReadAsync();
+                var stream = await latestBlob.OpenReadAsync();
+                return new StreamResult
+                {
+                    Stream = stream,
+                    ETag = latestBlob.Properties.ETag
+                };
             }
             catch (StorageException e)
             {
@@ -140,6 +148,25 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
 
             return latestBlob.Uri;
+        }
+
+        public async Task<UriResult> GetLatestUriResultAsync(GetLatestRequest request)
+        {
+            var context = new CloudContext(request.ConnectionString, request.Container);
+
+            var latestPath = GetLatestPath(request.PathFormat);
+            var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
+
+            if (!await latestBlob.ExistsAsync())
+            {
+                return null;
+            }
+
+            return new UriResult
+            {
+                Uri = latestBlob.Uri,
+                ETag = latestBlob.Properties.ETag
+            };
         }
 
         private static string GetLatestPath(string pathFormat)

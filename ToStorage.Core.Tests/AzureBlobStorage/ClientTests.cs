@@ -13,6 +13,34 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
     public class ClientTests
     {
         [Fact]
+        public async Task Client_GetsLatestUriResultWhenNotExisting()
+        {
+            // Arrange
+            var tc = new TestContext();
+
+            // Act
+            var uriResult = await tc.Client.GetLatestUriResultAsync(tc.GetLatestRequest);
+
+            // Assert
+            Assert.Null(uriResult);
+        }
+
+        [Fact]
+        public async Task Client_GetsLatestUriResultWhenExisting()
+        {
+            // Arrange
+            var tc = new TestContext();
+            await tc.Client.UploadAsync(tc.UploadRequest);
+
+            // Act
+            var uriResult = await tc.Client.GetLatestUriResultAsync(tc.GetLatestRequest);
+
+            // Assert
+            tc.VerifyUri(uriResult.Uri, "testpath/latest.txt");
+            Assert.NotNull(uriResult.ETag);
+        }
+
+        [Fact]
         public void Client_GetsLatestUri()
         {
             // Arrange
@@ -43,7 +71,9 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             // Assert
             Assert.NotNull(uploadResult);
             await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.04.05.txt");
+            Assert.NotNull(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
+            Assert.NotNull(uploadResult.LatestETag);
         }
 
         [Fact]
@@ -58,7 +88,9 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             // Assert
             Assert.NotNull(uploadResult);
             await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.04.05.txt");
+            Assert.NotNull(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
+            Assert.NotNull(uploadResult.LatestETag);
         }
 
         [Fact]
@@ -74,7 +106,9 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             // Assert
             Assert.NotNull(uploadResult);
             await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.04.05.txt");
+            Assert.NotNull(uploadResult.DirectETag);
             Assert.Null(uploadResult.LatestUri);
+            Assert.Null(uploadResult.LatestETag);
         }
 
         [Fact]
@@ -90,7 +124,9 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             // Assert
             Assert.NotNull(uploadResult);
             Assert.Null(uploadResult.DirectUri);
+            Assert.Null(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
+            Assert.NotNull(uploadResult.LatestETag);
         }
 
         [Fact]
@@ -101,10 +137,11 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             await tc.Client.UploadAsync(tc.UploadRequest);
 
             // Act
-            using (var stream = await tc.Client.GetLatestStreamAsync(tc.GetLatestRequest))
+            using (var streamResult = await tc.Client.GetLatestStreamAsync(tc.GetLatestRequest))
             {
                 // Assert
-                using (var reader = new StreamReader(stream))
+                Assert.NotNull(streamResult.ETag);
+                using (var reader = new StreamReader(streamResult.Stream))
                 {
                     Assert.Equal(tc.Content, reader.ReadToEnd());
                 }

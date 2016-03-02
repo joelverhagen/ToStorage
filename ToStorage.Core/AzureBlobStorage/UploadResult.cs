@@ -6,5 +6,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
     {
         public Uri DirectUri { get; set; }
         public Uri LatestUri { get; set; }
+        public string DirectETag { get; set; }
+        public string LatestETag { get; set; }
     }
 }
