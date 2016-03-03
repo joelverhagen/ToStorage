@@ -17,6 +17,6 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         public string ContentType { get; set; }
         public Stream Stream { get; set; }
         public bool UploadDirect { get; set; }
-        public Func<StreamResult, Task<bool>> IsUniqueAsync { get; set; }
+        public Func<StreamResult, Task<bool>> EqualsAsync { get; set; }
     }
 }

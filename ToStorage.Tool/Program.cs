@@ -58,11 +58,11 @@ namespace Knapcode.ToStorage.Tool
                             ContentType = options.ContentType,
                             PathFormat = options.PathFormat,
                             Stream = buffer,
-                            IsUniqueAsync = async x =>
+                            EqualsAsync = async x =>
                             {
                                 var equals = await new AsyncStreamEqualityComparer().EqualsAsync(buffer, x.Stream, CancellationToken.None);
                                 buffer.Seek(0, SeekOrigin.Begin);
-                                return !equals;
+                                return equals;
                             },
                             UploadDirect = true,
                             Trace = Console.Out

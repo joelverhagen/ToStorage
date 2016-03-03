@@ -32,7 +32,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 using (var currentResult = await _innerClient.GetLatestStreamAsync(getLatestRequest))
                 {
                     // return nothing if the streams are equivalent
-                    if (currentResult != null && !await request.IsUniqueAsync(currentResult))
+                    if (currentResult != null && await request.EqualsAsync(currentResult))
                     {
                         return null;
                     }

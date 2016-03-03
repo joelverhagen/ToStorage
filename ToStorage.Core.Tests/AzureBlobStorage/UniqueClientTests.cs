@@ -74,7 +74,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                     UploadDirect = true,
                     Stream = new MemoryStream(Encoding.UTF8.GetBytes(Content)),
                     Trace = TextWriter.Null,
-                    IsUniqueAsync = async x => (await new StreamReader(x.Stream).ReadLineAsync()) != Content
+                    EqualsAsync = async x => (await new StreamReader(x.Stream).ReadLineAsync()) == Content
                 };
                 GetLatestRequest = new GetLatestRequest
                 {
