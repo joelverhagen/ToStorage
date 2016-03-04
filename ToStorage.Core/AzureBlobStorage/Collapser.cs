@@ -60,6 +60,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             while (token != null);
 
             blobNames.Sort(request.Comparer);
+            request.Trace.WriteLine($"{blobNames.Count} blobs were sorted.");
 
             // collapse the blobs
             int indexX = 0;
@@ -78,6 +79,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                     var equals = await request.Comparer.EqualsAsync(nameX, streamX, nameY, streamY, CancellationToken.None);
                     if (equals)
                     {
+                        request.Trace.WriteLine($"Deleting '{nameY}'.");
                         await blobY.DeleteAsync();
                         indexY++;
                     }

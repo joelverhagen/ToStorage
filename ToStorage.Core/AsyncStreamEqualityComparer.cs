@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,11 +38,6 @@ namespace Knapcode.ToStorage.Core
             }
 
             return offset;
-        }
-
-        public Task<int> GetHashCodeAsync(Stream obj, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }
