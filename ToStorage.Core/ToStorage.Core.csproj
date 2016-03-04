@@ -80,6 +80,7 @@
     <Compile Include="AzureBlobStorage\UploadResult.cs" />
     <Compile Include="AzureBlobStorage\UriResult.cs" />
     <Compile Include="IAsyncEqualityComparer.cs" />
+    <Compile Include="ICollapserComparer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AsyncStreamEqualityComparer.cs" />
   </ItemGroup>
