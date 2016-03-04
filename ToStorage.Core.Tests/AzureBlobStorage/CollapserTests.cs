@@ -140,7 +140,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                     ConnectionString = UploadRequest.ConnectionString,
                     Container = UploadRequest.Container,
                     PathFormat = UploadRequest.PathFormat,
-                    Comparer = new CollapserComparer(),
+                    Comparer = new OrdinalCollapserComparer(),
                     Trace = TextWriter.Null
                 };
                 CloudContext = new CloudContext(UploadRequest.ConnectionString, UploadRequest.Container);
