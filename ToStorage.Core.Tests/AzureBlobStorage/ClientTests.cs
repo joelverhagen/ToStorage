@@ -230,13 +230,16 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
                 // dependencies
                 SystemTime = new Mock<ISystemTime>();
+                PathBuilder = new PathBuilder();
 
                 // setup
                 SystemTime.Setup(x => x.UtcNow).Returns(UtcNow);
 
                 // target
-                Target = new Client(SystemTime.Object);
+                Target = new Client(SystemTime.Object, PathBuilder);
             }
+
+            public PathBuilder PathBuilder { get; }
 
             public GetLatestRequest GetLatestRequest { get; }
 

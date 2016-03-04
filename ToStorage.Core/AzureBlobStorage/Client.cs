@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Knapcode.ToStorage.Core.Abstractions;
 using Microsoft.WindowsAzure.Storage;
@@ -18,18 +17,22 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
     public class Client : IClient
     {
         private readonly ISystemTime _systemTime;
+        private readonly IPathBuilder _pathBuilder;
 
-        public Client(ISystemTime systemTime)
+        public Client(ISystemTime systemTime, IPathBuilder pathBuilder)
         {
             _systemTime = systemTime;
+            _pathBuilder = pathBuilder;
         }
 
         public async Task<UploadResult> UploadAsync(UploadRequest request)
         {
-            var context = new CloudContext(request.ConnectionString, request.Container);
+            // validate input
+            _pathBuilder.Validate(request.PathFormat);
 
             // initialize
             request.Trace.Write("Initializing...");
+            var context = new CloudContext(request.ConnectionString, request.Container);
 
             await context.BlobContainer.CreateIfNotExistsAsync(
                 BlobContainerPublicAccessType.Blob,
@@ -41,15 +44,14 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             CloudBlockBlob directBlob = null;
             if (request.UploadDirect)
             {
-                var directPath = string.Format(request.PathFormat, _systemTime.UtcNow.ToString("yyyy.MM.dd.HH.mm.ss"));
-                directBlob = await UploadBlobAsync(context, request, directPath);
+                directBlob = await UploadBlobAsync(context, request, _pathBuilder.GetDirect(request.PathFormat, _systemTime.UtcNow));
             }
 
             // set the latest
             CloudBlockBlob latestBlob = null;
             if (request.UploadLatest)
             {
-                var latestPath = GetLatestPath(request.PathFormat);
+                var latestPath = _pathBuilder.GetLatest(request.PathFormat);
                 if (directBlob == null)
                 {
                     latestBlob = await UploadBlobAsync(context, request, latestPath);
@@ -116,7 +118,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         {
             var context = new CloudContext(request.ConnectionString, request.Container);
 
-            var latestPath = GetLatestPath(request.PathFormat);
+            var latestPath = _pathBuilder.GetLatest(request.PathFormat);
             var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
 
             try
@@ -144,7 +146,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         {
             var context = new CloudContext(request.ConnectionString, request.Container);
             
-            var latestPath = GetLatestPath(request.PathFormat);
+            var latestPath = _pathBuilder.GetLatest(request.PathFormat);
             var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
 
             return latestBlob.Uri;
@@ -154,7 +156,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         {
             var context = new CloudContext(request.ConnectionString, request.Container);
 
-            var latestPath = GetLatestPath(request.PathFormat);
+            var latestPath = _pathBuilder.GetLatest(request.PathFormat);
             var latestBlob = context.BlobContainer.GetBlockBlobReference(latestPath);
 
             if (!await latestBlob.ExistsAsync())
@@ -167,26 +169,6 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 Uri = latestBlob.Uri,
                 ETag = latestBlob.Properties.ETag
             };
-        }
-
-        private static string GetLatestPath(string pathFormat)
-        {
-            var latestPath = string.Format(pathFormat, "latest");
-            return latestPath;
-        }
-
-        private class CloudContext
-        {
-            public CloudContext(string connectionString, string container)
-            {
-                StorageAccount = CloudStorageAccount.Parse(connectionString);
-                BlobClient = StorageAccount.CreateCloudBlobClient();
-                BlobContainer = BlobClient.GetContainerReference(container);
-            }
-
-            public CloudStorageAccount StorageAccount { get; }
-            public CloudBlobClient BlobClient { get; }
-            public CloudBlobContainer BlobContainer { get; }
         }
     }
 }

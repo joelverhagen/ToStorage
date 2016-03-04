@@ -62,10 +62,16 @@
       <HintPath>..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abstractions\SystemTime.cs" />
     <Compile Include="AzureBlobStorage\Client.cs" />
+    <Compile Include="AzureBlobStorage\CloudContext.cs" />
+    <Compile Include="AzureBlobStorage\Collapser.cs" />
+    <Compile Include="AzureBlobStorage\CollapseRequest.cs" />
+    <Compile Include="AzureBlobStorage\CollapserComparer.cs" />
+    <Compile Include="AzureBlobStorage\PathBuilder.cs" />
     <Compile Include="AzureBlobStorage\StreamResult.cs" />
     <Compile Include="AzureBlobStorage\GetLatestRequest.cs" />
     <Compile Include="AzureBlobStorage\UniqueClient.cs" />

@@ -92,6 +92,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AzureBlobStorage\CollapserTests.cs" />
     <Compile Include="AzureBlobStorage\UniqueClientTests.cs" />
     <Compile Include="AzureBlobStorage\ClientTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

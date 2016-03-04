@@ -39,7 +39,7 @@ namespace Knapcode.ToStorage.Tool
             // build the implementation models
             using (var stdin = Console.OpenStandardInput())
             {
-                var client = new Client(new SystemTime());
+                var client = new Client(new SystemTime(), new PathBuilder());
 
                 if (options.OnlyUnique)
                 {

@@ -86,7 +86,8 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
                 // dependencies
                 SystemTime = new Mock<ISystemTime>();
-                Client = new Client(SystemTime.Object);
+                PathBuilder = new PathBuilder();
+                Client = new Client(SystemTime.Object, PathBuilder);
 
                 // setup
                 SystemTime.Setup(x => x.UtcNow).Returns(UtcNow);
@@ -94,6 +95,8 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                 // target
                 Target = new UniqueClient(Client);
             }
+
+            public PathBuilder PathBuilder { get; }
 
             public string Content { get; }
 
