@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Knapcode.ToStorage.Core.AzureBlobStorage
+namespace Knapcode.ToStorage.Core
 {
     public interface ICollapserComparer : IComparer<string>
     {

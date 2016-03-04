@@ -70,7 +70,7 @@
     <Compile Include="AzureBlobStorage\CloudContext.cs" />
     <Compile Include="AzureBlobStorage\Collapser.cs" />
     <Compile Include="AzureBlobStorage\CollapseRequest.cs" />
-    <Compile Include="AzureBlobStorage\CollapserComparer.cs" />
+    <Compile Include="CollapserComparer.cs" />
     <Compile Include="AzureBlobStorage\PathBuilder.cs" />
     <Compile Include="AzureBlobStorage\StreamResult.cs" />
     <Compile Include="AzureBlobStorage\GetLatestRequest.cs" />
