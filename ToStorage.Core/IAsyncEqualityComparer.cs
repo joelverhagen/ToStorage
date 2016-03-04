@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace Knapcode.ToStorage.Core
 {
-    public interface IAsyncEqualityComparer
+    public interface IAsyncEqualityComparer<T>
     {
-        Task<bool> EqualsAsync(Stream x, Stream y, CancellationToken cancellationToken);
-        Task<int> GetHashCodeAsync(Stream obj, CancellationToken cancellationToken);
+        Task<bool> EqualsAsync(T x, T y, CancellationToken cancellationToken);
+        Task<int> GetHashCodeAsync(T obj, CancellationToken cancellationToken);
     }
 }
