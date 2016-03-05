@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Knapcode.ToStorage.Core
 {
-    public class AsyncStreamEqualityComparer : IAsyncEqualityComparer<Stream>
+    public class OrdinalStreamEqualityComparer : IAsyncEqualityComparer<Stream>
     {
         public async Task<bool> EqualsAsync(Stream x, Stream y, CancellationToken cancellationToken)
         {

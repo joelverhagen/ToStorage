@@ -83,7 +83,7 @@
     <Compile Include="ICollapserComparer.cs" />
     <Compile Include="OrdinalCollapserComparer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AsyncStreamEqualityComparer.cs" />
+    <Compile Include="OrdinalStreamEqualityComparer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Knapcode.ToStorage.Core.nuspec" />

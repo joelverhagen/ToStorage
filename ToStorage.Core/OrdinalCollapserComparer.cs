@@ -8,12 +8,12 @@ namespace Knapcode.ToStorage.Core
     public class OrdinalCollapserComparer : ICollapserComparer
     {
         private readonly StringComparer _nameComparer;
-        private readonly AsyncStreamEqualityComparer _streamComparer;
+        private readonly OrdinalStreamEqualityComparer _streamComparer;
 
         public OrdinalCollapserComparer()
         {
             _nameComparer = StringComparer.Ordinal;
-            _streamComparer = new AsyncStreamEqualityComparer();
+            _streamComparer = new OrdinalStreamEqualityComparer();
         }
 
         public int Compare(string x, string y)
