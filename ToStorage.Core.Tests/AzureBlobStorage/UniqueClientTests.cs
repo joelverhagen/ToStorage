@@ -17,83 +17,90 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
         public async Task UniqueClient_UpdatesUniqueWithoutExisting()
         {
             // Arrange
-            var tc = new TestContext();
+            using (var tc = new TestContext())
+            {
+                // Act
+                var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
 
-            // Act
-            var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
-
-            // Assert
-            await tc.VerifyContentAsync(actual.DirectUri);
-            await tc.VerifyContentAsync(actual.LatestUri);
+                // Assert
+                await tc.VerifyContentAsync(actual.DirectUri);
+                await tc.VerifyContentAsync(actual.LatestUri);
+            }
         }
 
         [Fact]
         public async Task UniqueClient_DoesNotOverwriteDirectTimestamp()
         {
             // Arrange
-            var tc = new TestContext();
-            tc.UniqueUploadRequest.Type = UploadRequestType.Timestamp;
-            tc.Content = "content";
-            tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
-            var uploadResult = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
-            tc.Content = "newerContent";
-            tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+            using (var tc = new TestContext())
+            {
+                tc.UniqueUploadRequest.Type = UploadRequestType.Timestamp;
+                tc.Content = "content";
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+                var uploadResult = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+                tc.Content = "newerContent";
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
 
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<StorageException>(() => tc.Target.UploadAsync(tc.UniqueUploadRequest));
-            Assert.Equal(409, exception.RequestInformation.HttpStatusCode);
-
-            tc.Content = "content";
-            await tc.VerifyContentAsync(uploadResult.DirectUri);
-            await tc.VerifyContentAsync(uploadResult.LatestUri);
+                // Act & Assert
+                var exception = await Assert.ThrowsAsync<StorageException>(() => tc.Target.UploadAsync(tc.UniqueUploadRequest));
+                Assert.Equal(409, exception.RequestInformation.HttpStatusCode);
+                
+                await tc.VerifyContentAsync(uploadResult.DirectUri, "content");
+                await tc.VerifyContentAsync(uploadResult.LatestUri, "content");
+            }
         }
 
         [Fact]
         public async Task UniqueClient_UpdatesUniqueWithExisting()
         {
             // Arrange
-            var tc = new TestContext();
-            tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes("oldContent"));
-            await tc.Target.UploadAsync(tc.UniqueUploadRequest);
-            tc.UtcNow = tc.UtcNow.AddMinutes(1);
-            tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+            using (var tc = new TestContext())
+            {
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes("oldContent"));
+                await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+                tc.UtcNow = tc.UtcNow.AddMinutes(1);
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
 
-            // Act
-            var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+                // Act
+                var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
 
-            // Assert
-            await tc.VerifyContentAsync(actual.DirectUri);
-            await tc.VerifyContentAsync(actual.LatestUri);
+                // Assert
+                await tc.VerifyContentAsync(actual.DirectUri);
+                await tc.VerifyContentAsync(actual.LatestUri);
+            }
         }
 
         [Fact]
         public async Task UniqueClient_DoesNotUpdateNonUniqueContent()
         {
             // Arrange
-            var tc = new TestContext();
-            await tc.Target.UploadAsync(tc.UniqueUploadRequest);
-            tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+            using (var tc = new TestContext())
+            {
+                await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
 
-            // Act
-            var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+                // Act
+                var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
 
-            // Assert
-            Assert.Null(actual);
+                // Assert
+                Assert.Null(actual);
+            }
         }
 
-        private class TestContext
+        private class TestContext : IDisposable
         {
             public TestContext()
             {
                 // data
                 UtcNow = new DateTimeOffset(2015, 1, 2, 3, 4, 5, TimeSpan.Zero);
                 Content = "newContent";
+                Prefix = Guid.NewGuid() + "/testpath";
                 UniqueUploadRequest = new UniqueUploadRequest
                 {
-                    ConnectionString = "UseDevelopmentStorage=true",
-                    Container = "testcontainer",
+                    ConnectionString = TestSupport.ConnectionString,
+                    Container = TestSupport.Container,
                     ContentType = "text/plain",
-                    PathFormat = Guid.NewGuid() + "/testpath/{0}.txt",
+                    PathFormat = Prefix + "/{0}.txt",
                     UploadDirect = true,
                     Stream = new MemoryStream(Encoding.UTF8.GetBytes(Content)),
                     Trace = TextWriter.Null,
@@ -134,6 +141,8 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             public Mock<ISystemTime> SystemTime { get; }
 
             public DateTimeOffset UtcNow { get; set; }
+            public string Prefix { get; }
+
             public async Task<HttpResponseMessage> GetBlobAsync(Uri uri)
             {
                 using (var httpClient = new HttpClient())
@@ -142,11 +151,22 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                 }
             }
 
+            public async Task VerifyContentAsync(Uri uri, string content)
+            {
+                var response = await GetBlobAsync(uri);
+                Assert.Equal(content, await response.Content.ReadAsStringAsync());
+            }
+
             public async Task VerifyContentAsync(Uri uri)
             {
                 var response = await GetBlobAsync(uri);
                 Assert.Equal(UniqueUploadRequest.ContentType, response.Content.Headers.ContentType.ToString());
                 Assert.Equal(Content, await response.Content.ReadAsStringAsync());
+            }
+
+            public void Dispose()
+            {
+                TestSupport.DeleteBlobsWithPrefix(Prefix);
             }
         }
     }
