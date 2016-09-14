@@ -42,12 +42,13 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             request.Trace.WriteLine(" done.");
 
             // set the direct
+            var result = new UploadResult();
             CloudBlockBlob directBlob = null;
             if (request.UploadDirect)
             {
                 if (request.Type == UploadRequestType.Number)
                 {
-                    directBlob = await UploadDirectNumberAsync(request, context);
+                    directBlob = await UploadDirectNumberAsync(request, context, result);
                 }
                 else
                 {
@@ -82,8 +83,6 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 
             request.Trace.WriteLine();
 
-            var result = new UploadResult();
-
             if (directBlob != null)
             {
                 result.DirectUri = directBlob.Uri;
@@ -110,32 +109,41 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             return directBlob;
         }
 
-        private async Task<CloudBlockBlob> UploadDirectNumberAsync(UploadRequest request, CloudContext context)
+        private async Task<CloudBlockBlob> UploadDirectNumberAsync(UploadRequest request, CloudContext context, UploadResult result)
         {
-            // Determine what version number is next
             var latestNumberPath = _pathBuilder.GetDirect(request.PathFormat, 0);
             var latestNumberBlob = context.BlobContainer.GetBlockBlobReference(latestNumberPath);
-            var latestNumber = 0;
             string latestNumberEtag = null;
+            var latestNumber = 0;
 
-            try
+            if (request.LatestNumber.HasValue)
             {
-                await latestNumberBlob.FetchAttributesAsync();
-
-                latestNumberEtag = latestNumberBlob.Properties.ETag;
-
-                var latestNumberString = latestNumberBlob.Metadata[LatestNumberMetadataKey];
-                latestNumber = int.Parse(latestNumberString);
+                // Use the provided version number
+                latestNumberEtag = request.LatestNumberETag;
+                latestNumber = request.LatestNumber.Value;
             }
-            catch (StorageException e)
+            else
             {
-                if (e.RequestInformation.HttpStatusCode != 404)
+                // Determine what version number what last used
+                try
                 {
-                    throw;
-                }
-            }
+                    await latestNumberBlob.FetchAttributesAsync();
 
-            latestNumber++;
+                    latestNumberEtag = latestNumberBlob.Properties.ETag;
+
+                    var latestNumberString = latestNumberBlob.Metadata[LatestNumberMetadataKey];
+                    latestNumber = int.Parse(latestNumberString);
+                }
+                catch (StorageException e)
+                {
+                    if (e.RequestInformation.HttpStatusCode != 404)
+                    {
+                        throw;
+                    }
+                }
+
+                latestNumber++;
+            }
 
             // Upload the stream
             var latestPath = _pathBuilder.GetDirect(request.PathFormat, latestNumber);
@@ -144,7 +152,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             
             // Update the latest version record
             AccessCondition accessCondition;
-            if (!request.UseETag)
+            if (!request.UseETags)
             {
                 accessCondition = null;
             }
@@ -161,6 +169,10 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 
             await latestNumberBlob.UploadFromByteArrayAsync(new byte[0], 0, 0, accessCondition, options: null, operationContext: null);
 
+            // Set the latest etag and number on the result
+            result.LatestNumberETag = latestNumberBlob.Properties.ETag;
+            result.LatestNumber = latestNumber;
+
             return directBlob;
         }
 
@@ -170,7 +182,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             var blob = context.BlobContainer.GetBlockBlobReference(blobPath);
 
             AccessCondition accessCondition;
-            if (!direct && !request.UseETag)
+            if (!direct && !request.UseETags)
             {
                 accessCondition = null;
             }

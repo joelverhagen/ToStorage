@@ -41,7 +41,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                     {
                         ConnectionString = request.ConnectionString,
                         ETag = currentResult?.ETag,
-                        UseETag = request.UseETag,
+                        UseETags = request.UseETag,
                         Stream = request.Stream,
                         PathFormat = request.PathFormat,
                         Container = request.Container,

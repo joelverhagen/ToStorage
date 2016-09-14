@@ -150,6 +150,37 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             Assert.NotNull(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
             Assert.NotNull(uploadResult.LatestETag);
+            Assert.NotNull(uploadResult.LatestNumberETag);
+            Assert.Equal(2, uploadResult.LatestNumber);
+        }
+
+        [Fact]
+        public async Task Client_AllowsNextNumberToBeChangedWithRequest()
+        {
+            // Arrange
+            var tc = new TestContext();
+            tc.UploadRequest.Type = UploadRequestType.Number;
+            tc.UploadRequest.ContentType = "application/json";
+            tc.UploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes("[1, 2]"));
+            var setupResult = await tc.Target.UploadAsync(tc.UploadRequest);
+
+            tc.UploadRequest.LatestNumberETag = setupResult.LatestNumberETag;
+            tc.UploadRequest.LatestNumber = 5;
+            tc.UploadRequest.ETag = setupResult.LatestETag;
+            tc.UploadRequest.ContentType = "text/plain";
+            tc.UploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+
+            // Act
+            var uploadResult = await tc.Target.UploadAsync(tc.UploadRequest);
+
+            // Assert
+            Assert.NotNull(uploadResult);
+            await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/5.txt");
+            Assert.NotNull(uploadResult.DirectETag);
+            await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
+            Assert.NotNull(uploadResult.LatestETag);
+            Assert.NotNull(uploadResult.LatestNumberETag);
+            Assert.Equal(5, uploadResult.LatestNumber);
         }
 
         [Fact]
@@ -188,6 +219,8 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             Assert.NotNull(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
             Assert.NotNull(uploadResult.LatestETag);
+            Assert.NotNull(uploadResult.LatestNumberETag);
+            Assert.Equal(1, uploadResult.LatestNumber);
         }
 
         [Fact]
@@ -207,6 +240,8 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             Assert.NotNull(uploadResult.DirectETag);
             Assert.Null(uploadResult.LatestUri);
             Assert.Null(uploadResult.LatestETag);
+            Assert.NotNull(uploadResult.LatestNumberETag);
+            Assert.Equal(1, uploadResult.LatestNumber);
         }
 
         [Fact]

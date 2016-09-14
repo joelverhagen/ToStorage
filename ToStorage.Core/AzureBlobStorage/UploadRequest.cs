@@ -12,8 +12,10 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         public bool UploadDirect { get; set; }
         public bool UploadLatest { get; set; }
         public string ETag { get; set; }
-        public bool UseETag { get; set; } = true;
+        public bool UseETags { get; set; } = true;
         public Stream Stream { get; set; }
         public UploadRequestType Type { get; set; } = UploadRequestType.Timestamp;
+        public string LatestNumberETag { get; set; }
+        public int? LatestNumber { get; set; }
     }
 }
