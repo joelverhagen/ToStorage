@@ -8,6 +8,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         void Validate(string pathFormat);
         string GetLatest(string pathFormat);
         string GetDirect(string pathFormat, DateTimeOffset dateTimeOffset);
+        string GetDirect(string pathFormat, int number);
     }
 
     public class PathBuilder : IPathBuilder
@@ -36,6 +37,11 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
         public string GetDirect(string pathFormat, DateTimeOffset dateTimeOffset)
         {
             return string.Format(pathFormat, dateTimeOffset.ToString("yyyy.MM.dd.HH.mm.ss"));
+        }
+
+        public string GetDirect(string pathFormat, int number)
+        {
+            return string.Format(pathFormat, number);
         }
     }
 }

@@ -41,13 +41,15 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                     {
                         ConnectionString = request.ConnectionString,
                         ETag = currentResult?.ETag,
+                        UseETag = request.UseETag,
                         Stream = request.Stream,
                         PathFormat = request.PathFormat,
                         Container = request.Container,
                         Trace = request.Trace,
                         UploadDirect = request.UploadDirect,
                         UploadLatest = true,
-                        ContentType = request.ContentType
+                        ContentType = request.ContentType,
+                        Type = request.Type
                     };
 
                     return await _innerClient.UploadAsync(uploadRequest);

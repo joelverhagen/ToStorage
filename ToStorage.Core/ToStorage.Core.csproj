@@ -77,6 +77,7 @@
     <Compile Include="AzureBlobStorage\UniqueClient.cs" />
     <Compile Include="AzureBlobStorage\UniqueUploadRequest.cs" />
     <Compile Include="AzureBlobStorage\UploadRequest.cs" />
+    <Compile Include="AzureBlobStorage\UploadRequestType.cs" />
     <Compile Include="AzureBlobStorage\UploadResult.cs" />
     <Compile Include="AzureBlobStorage\UriResult.cs" />
     <Compile Include="IAsyncEqualityComparer.cs" />

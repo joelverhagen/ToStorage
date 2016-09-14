@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Knapcode.ToStorage.Core.Abstractions;
 using Knapcode.ToStorage.Core.AzureBlobStorage;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Xunit;
 
@@ -27,12 +28,34 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
         }
 
         [Fact]
+        public async Task UniqueClient_DoesNotOverwriteDirectTimestamp()
+        {
+            // Arrange
+            var tc = new TestContext();
+            tc.UniqueUploadRequest.Type = UploadRequestType.Timestamp;
+            tc.Content = "content";
+            tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+            var uploadResult = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+            tc.Content = "newerContent";
+            tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<StorageException>(() => tc.Target.UploadAsync(tc.UniqueUploadRequest));
+            Assert.Equal(409, exception.RequestInformation.HttpStatusCode);
+
+            tc.Content = "content";
+            await tc.VerifyContentAsync(uploadResult.DirectUri);
+            await tc.VerifyContentAsync(uploadResult.LatestUri);
+        }
+
+        [Fact]
         public async Task UniqueClient_UpdatesUniqueWithExisting()
         {
             // Arrange
             var tc = new TestContext();
             tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes("oldContent"));
             await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+            tc.UtcNow = tc.UtcNow.AddMinutes(1);
             tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
 
             // Act
@@ -90,7 +113,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                 Client = new Client(SystemTime.Object, PathBuilder);
 
                 // setup
-                SystemTime.Setup(x => x.UtcNow).Returns(UtcNow);
+                SystemTime.Setup(x => x.UtcNow).Returns(() => UtcNow);
 
                 // target
                 Target = new UniqueClient(Client);
@@ -98,7 +121,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
             public PathBuilder PathBuilder { get; }
 
-            public string Content { get; }
+            public string Content { get; set; }
 
             public UniqueClient Target { get; }
 
@@ -110,7 +133,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
             public Mock<ISystemTime> SystemTime { get; }
 
-            public DateTimeOffset UtcNow { get; }
+            public DateTimeOffset UtcNow { get; set; }
             public async Task<HttpResponseMessage> GetBlobAsync(Uri uri)
             {
                 using (var httpClient = new HttpClient())

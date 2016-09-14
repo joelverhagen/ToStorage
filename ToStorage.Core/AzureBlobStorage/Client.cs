@@ -16,6 +16,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 
     public class Client : IClient
     {
+        private const string LatestNumberMetadataKey = "LatestNumber";
         private readonly ISystemTime _systemTime;
         private readonly IPathBuilder _pathBuilder;
 
@@ -44,7 +45,14 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             CloudBlockBlob directBlob = null;
             if (request.UploadDirect)
             {
-                directBlob = await UploadBlobAsync(context, request, _pathBuilder.GetDirect(request.PathFormat, _systemTime.UtcNow));
+                if (request.Type == UploadRequestType.Number)
+                {
+                    directBlob = await UploadDirectNumberAsync(request, context);
+                }
+                else
+                {
+                    directBlob = await UploadDirectTimestampAsync(request, context);
+                }
             }
 
             // set the latest
@@ -54,7 +62,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 var latestPath = _pathBuilder.GetLatest(request.PathFormat);
                 if (directBlob == null)
                 {
-                    latestBlob = await UploadBlobAsync(context, request, latestPath);
+                    latestBlob = await UploadBlobAsync(context, request, latestPath, direct: false);
                 }
                 else
                 {
@@ -93,13 +101,90 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             return result;
         }
 
-        private static async Task<CloudBlockBlob> UploadBlobAsync(CloudContext context, UploadRequest request, string blobPath)
+        private async Task<CloudBlockBlob> UploadDirectTimestampAsync(UploadRequest request, CloudContext context)
+        {
+            var latestPath = _pathBuilder.GetDirect(request.PathFormat, _systemTime.UtcNow);
+
+            var directBlob = await UploadBlobAsync(context, request, latestPath, direct: true);
+
+            return directBlob;
+        }
+
+        private async Task<CloudBlockBlob> UploadDirectNumberAsync(UploadRequest request, CloudContext context)
+        {
+            // Determine what version number is next
+            var latestNumberPath = _pathBuilder.GetDirect(request.PathFormat, 0);
+            var latestNumberBlob = context.BlobContainer.GetBlockBlobReference(latestNumberPath);
+            var latestNumber = 0;
+            string latestNumberEtag = null;
+
+            try
+            {
+                await latestNumberBlob.FetchAttributesAsync();
+
+                latestNumberEtag = latestNumberBlob.Properties.ETag;
+
+                var latestNumberString = latestNumberBlob.Metadata[LatestNumberMetadataKey];
+                latestNumber = int.Parse(latestNumberString);
+            }
+            catch (StorageException e)
+            {
+                if (e.RequestInformation.HttpStatusCode != 404)
+                {
+                    throw;
+                }
+            }
+
+            latestNumber++;
+
+            // Upload the stream
+            var latestPath = _pathBuilder.GetDirect(request.PathFormat, latestNumber);
+
+            var directBlob = await UploadBlobAsync(context, request, latestPath, direct: true);
+            
+            // Update the latest version record
+            AccessCondition accessCondition;
+            if (!request.UseETag)
+            {
+                accessCondition = null;
+            }
+            else if (latestNumberEtag != null)
+            {
+                accessCondition = AccessCondition.GenerateIfMatchCondition(latestNumberEtag);
+            }
+            else
+            {
+                accessCondition = AccessCondition.GenerateIfNoneMatchCondition("*");
+            }
+
+            latestNumberBlob.Metadata[LatestNumberMetadataKey] = latestNumber.ToString();
+
+            await latestNumberBlob.UploadFromByteArrayAsync(new byte[0], 0, 0, accessCondition, options: null, operationContext: null);
+
+            return directBlob;
+        }
+
+        private static async Task<CloudBlockBlob> UploadBlobAsync(CloudContext context, UploadRequest request, string blobPath, bool direct)
         {
             request.Trace.Write($"Uploading the blob at '{blobPath}'...");
             var blob = context.BlobContainer.GetBlockBlobReference(blobPath);
 
+            AccessCondition accessCondition;
+            if (!direct && !request.UseETag)
+            {
+                accessCondition = null;
+            }
+            if (direct || request.ETag == null)
+            {
+                accessCondition = AccessCondition.GenerateIfNoneMatchCondition("*");
+            }
+            else
+            {
+                accessCondition = AccessCondition.GenerateIfMatchCondition(request.ETag);
+            }
+
             // upload the blob
-            await blob.UploadFromStreamAsync(request.Stream);
+            await blob.UploadFromStreamAsync(request.Stream, accessCondition, options: null, operationContext: null);
             request.Trace.WriteLine(" done.");
 
             // set the content type
