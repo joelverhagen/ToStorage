@@ -121,6 +121,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
             // Assert
             Assert.NotNull(uploadResult);
+            await tc.VerifyUriAndContentAsync(setupResult.DirectUri, "testpath/2015.01.02.03.04.05.txt", "[1, 2]");
             await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.05.05.txt");
             Assert.NotNull(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
@@ -146,6 +147,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
             // Assert
             Assert.NotNull(uploadResult);
+            await tc.VerifyUriAndContentAsync(setupResult.DirectUri, "testpath/1.txt", "[1, 2]");
             await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2.txt");
             Assert.NotNull(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
@@ -175,6 +177,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
             // Assert
             Assert.NotNull(uploadResult);
+            await tc.VerifyUriAndContentAsync(setupResult.DirectUri, "testpath/1.txt", "[1, 2]");
             await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/5.txt");
             Assert.NotNull(uploadResult.DirectETag);
             await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
@@ -394,6 +397,18 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             {
                 VerifyUri(uri, endsWith);
                 await VerifyContentAsync(uri);
+            }
+
+            public async Task VerifyUriAndContentAsync(Uri uri, string endsWith, string content)
+            {
+                VerifyUri(uri, endsWith);
+                await VerifyContentAsync(uri, content);
+            }
+
+            public async Task VerifyContentAsync(Uri uri, string content)
+            {
+                var response = await GetBlobAsync(uri);
+                Assert.Equal(content, await response.Content.ReadAsStringAsync());
             }
 
             public async Task VerifyContentAsync(Uri uri)
