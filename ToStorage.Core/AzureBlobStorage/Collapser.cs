@@ -76,8 +76,8 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 using (var streamX = await blobX.OpenReadAsync())
                 using (var streamY = await blobY.OpenReadAsync())
                 {
-                    var equals = await request.Comparer.EqualsAsync(nameX, streamX, nameY, streamY, CancellationToken.None);
-                    if (equals)
+                    if (blobX.Properties.ContentMD5 == blobY.Properties.ContentMD5 ||
+                        await request.Comparer.EqualsAsync(nameX, streamX, nameY, streamY, CancellationToken.None))
                     {
                         request.Trace.WriteLine($"Deleting '{nameY}'.");
                         await blobY.DeleteAsync();
