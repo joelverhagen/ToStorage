@@ -224,7 +224,8 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 return new StreamResult
                 {
                     Stream = stream,
-                    ETag = latestBlob.Properties.ETag
+                    ETag = latestBlob.Properties.ETag,
+                    ContentMD5 = latestBlob.Properties.ContentMD5
                 };
             }
             catch (StorageException e)

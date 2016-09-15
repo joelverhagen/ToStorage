@@ -11,6 +11,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
     {
         public Stream Stream { get; set; }
         public string ETag { get; set; }
+        public string ContentMD5 { get; set; }
 
         public void Dispose()
         {

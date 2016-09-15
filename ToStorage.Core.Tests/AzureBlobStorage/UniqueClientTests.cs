@@ -71,7 +71,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
         }
 
         [Fact]
-        public async Task UniqueClient_DoesNotUpdateNonUniqueContent()
+        public async Task UniqueClient_UsesMD5ToCompareContent()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -84,6 +84,35 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
                 // Assert
                 Assert.Null(actual);
+                Assert.False(tc.EqualsAsyncCalled);
+            }
+        }
+
+        [Fact]
+        public async Task UniqueClient_UsesEqualsAsyncToCompareContent()
+        {
+            // Arrange
+            using (var tc = new TestContext())
+            {
+                tc.Content = "a1";
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+                await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+
+                tc.Content = "a2";
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+                tc.UniqueUploadRequest.EqualsAsync = async x =>
+                {
+                    tc.EqualsAsyncCalled = true;
+                    var content = await new StreamReader(x.Stream).ReadToEndAsync();
+                    return content[0] == tc.Content[0];
+                };
+
+                // Act
+                var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+
+                // Assert
+                Assert.Null(actual);
+                Assert.True(tc.EqualsAsyncCalled);
             }
         }
 
@@ -95,6 +124,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                 UtcNow = new DateTimeOffset(2015, 1, 2, 3, 4, 5, TimeSpan.Zero);
                 Content = "newContent";
                 Prefix = Guid.NewGuid() + "/testpath";
+                EqualsAsyncCalled = false;
                 UniqueUploadRequest = new UniqueUploadRequest
                 {
                     ConnectionString = TestSupport.ConnectionString,
@@ -104,7 +134,12 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
                     UploadDirect = true,
                     Stream = new MemoryStream(Encoding.UTF8.GetBytes(Content)),
                     Trace = TextWriter.Null,
-                    EqualsAsync = async x => (await new StreamReader(x.Stream).ReadLineAsync()) == Content
+                    EqualsAsync = async x =>
+                    {
+                        EqualsAsyncCalled = true;
+                        var actualContent = await new StreamReader(x.Stream).ReadLineAsync();
+                        return actualContent == Content;
+                    }
                 };
                 GetLatestRequest = new GetLatestRequest
                 {
@@ -142,6 +177,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
             public DateTimeOffset UtcNow { get; set; }
             public string Prefix { get; }
+            public bool EqualsAsyncCalled { get; set; }
 
             public async Task<HttpResponseMessage> GetBlobAsync(Uri uri)
             {

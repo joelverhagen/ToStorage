@@ -60,9 +60,8 @@ namespace Knapcode.ToStorage.Tool
                             Stream = buffer,
                             EqualsAsync = async x =>
                             {
-                                var equals = await new OrdinalStreamEqualityComparer().EqualsAsync(buffer, x.Stream, CancellationToken.None);
-                                buffer.Seek(0, SeekOrigin.Begin);
-                                return equals;
+                                var comparer = new OrdinalStreamEqualityComparer();
+                                return await comparer.EqualsAsync(buffer, x.Stream, CancellationToken.None);
                             },
                             UploadDirect = true,
                             Trace = Console.Out
