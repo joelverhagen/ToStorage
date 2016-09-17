@@ -63,7 +63,7 @@ namespace Knapcode.ToStorage.Tool
                                 var comparer = new OrdinalStreamEqualityComparer();
                                 return await comparer.EqualsAsync(buffer, x.Stream, CancellationToken.None);
                             },
-                            UploadDirect = true,
+                            UploadDirect = options.UpdateDirect,
                             Trace = Console.Out
                         };
 
