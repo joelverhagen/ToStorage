@@ -34,6 +34,15 @@ if (!$xunitPath) {
 
 $xunitPath = $xunitPath.FullName
 
+# start Azure Storage emulator
+$msiPath = [io.path]::Combine($env:APPVEYOR_BUILD_FOLDER, "packages", "MicrosoftAzureStorageEmulator.msi")
+$msiUrl = "http://download.microsoft.com/download/7/B/5/7B53AA52-9519-467C-8DC7-1A1FF72500D9/MicrosoftAzureStorageEmulator.msi"
+Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath
+cmd /c start /wait msiexec /i $msiPath /quiet
+$emulatorPath = "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe"
+& $emulatorPath start
+& $emulatorPath status
+
 # test
 $testProjects = Get-ChildItem (Join-Path $rootPath "test")
 foreach ($testProject in $testProjects) {
