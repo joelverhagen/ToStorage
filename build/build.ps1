@@ -11,13 +11,41 @@ $solutionPath = Join-Path $rootPath "ToStorage.sln"
 $artifactsPath = Join-Path $rootPath "artifacts"
 
 # download nuget.exe
-If (-Not (Test-Path $nugetPath)) {
+if (-Not (Test-Path $nugetPath)) {
 	Invoke-WebRequest $nugetUrl -OutFile $nugetPath
 }
 
 # install packages
 & $nugetPath restore $solutionPath -SolutionDirectory $rootPath
 & $nugetPath restore (Join-Path $buildPath "packages.config") -SolutionDirectory $rootPath
+
+# build
+& $msbuildPath $solutionPath /t:Build /p:Configuration=Release
+
+if (-Not (Test-Path $artifactsPath)) {
+    New-Item -Path $artifactsPath -ItemType directory
+}
+
+# find xunit console runner
+$xunitPath = Get-ChildItem (Join-Path $rootPath "packages\**\xunit.console.exe") -Recurse
+if (!$xunitPath) {
+    throw "The build script could not find ilmerge.exe"
+}
+
+$xunitPath = $xunitPath.FullName
+
+# test
+$testProjects = Get-ChildItem (Join-Path $rootPath "test")
+foreach ($testProject in $testProjects) {
+    $name = $testProject.Name
+    $testAssembly = [io.path]::Combine($testProject.FullName, "bin", "Release", $testProject.Name + ".dll")
+    
+    & $xunitPath $testAssembly -verbose -diagnostics -parallel all
+
+    if (-Not $?) {
+        throw "Test assembly for project $name failed."
+    }
+}
 
 # find ilmerge
 $ilmergePath = Get-ChildItem (Join-Path $rootPath "packages\**\ilmerge.exe") -Recurse
@@ -26,13 +54,6 @@ if (!$ilmergePath) {
 }
 
 $ilmergePath = $ilmergePath.FullName
-
-# build
-& $msbuildPath $solutionPath /t:Build /p:Configuration=Release
-
-if (-Not (Test-Path $artifactsPath)) {
-    New-Item -Path $artifactsPath -ItemType directory
-}
 
 # ilmerge
 $originalTool = "src\Knapcode.ToStorage.Tool\bin\Release"

@@ -7,8 +7,8 @@
     <ProjectGuid>{1B6302B3-72D8-43DB-9E9A-F709C7C3B15B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Knapcode.ToStorage.Tool.Tests</RootNamespace>
-    <AssemblyName>Knapcode.ToStorage.Tool.Tests</AssemblyName>
+    <RootNamespace>Knapcode.ToStorage.Tool.Test</RootNamespace>
+    <AssemblyName>Knapcode.ToStorage.Tool.Test</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>

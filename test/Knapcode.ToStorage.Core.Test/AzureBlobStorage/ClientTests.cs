@@ -9,7 +9,7 @@ using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Xunit;
 
-namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
+namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
 {
     public class ClientTests
     {

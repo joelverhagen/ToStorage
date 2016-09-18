@@ -7,10 +7,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Knapcode.Procommand;
-using Knapcode.ToStorage.Core.Tests;
+using Knapcode.ToStorage.Core.Test;
 using Xunit;
 
-namespace Knapcode.ToStorage.Tool.Tests
+namespace Knapcode.ToStorage.Tool.Test
 {
     public class ProgramTests
     {

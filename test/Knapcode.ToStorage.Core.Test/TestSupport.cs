@@ -2,7 +2,7 @@
 using Knapcode.ToStorage.Core.AzureBlobStorage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Knapcode.ToStorage.Core.Tests
+namespace Knapcode.ToStorage.Core.Test
 {
     public static class TestSupport
     {
