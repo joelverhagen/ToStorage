@@ -1,7 +1,10 @@
-# ToStorage
+# ToStorage 
+
 Pipe stuff to storage.
 
 Takes `stdin` and writes it to Azure Blob Storage. Uploads two blobs by default: a permalink based on the current UTC time and updates a "latest" blob. 
+
+[![Build status](https://ci.appveyor.com/api/projects/status/2nqj5vk1w1jrjf7i?svg=true)](https://ci.appveyor.com/project/joelverhagen/tostorage)
 
 ## Example
 
