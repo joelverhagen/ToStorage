@@ -485,7 +485,11 @@ namespace Knapcode.ToStorage.Tool.Test
                     "src",
                     "Knapcode.ToStorage.Tool",
                     "bin",
+#if DEBUG
                     "Debug",
+#else
+                    "Release",
+#endif
                     "ToStorage.exe");
             }
 
