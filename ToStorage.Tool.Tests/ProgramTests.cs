@@ -257,6 +257,50 @@ namespace Knapcode.ToStorage.Tool.Tests
             }
         }
 
+        [Fact]
+        public void RequiresConnectionStringOption()
+        {
+            // Arrange
+            using (var tc = new TestContext())
+            {
+                // Act
+                var actual = tc.ExecuteCommand(
+                    new[]
+                    {
+                        "--container", tc.Container,
+                        "--path-format", tc.PathFormat
+                    },
+                    tc.Content);
+
+                // Assert
+                Assert.Equal(CommandStatus.Exited, actual.Status);
+                Assert.Equal(1, actual.ExitCode);
+                Assert.Contains("Required option 's, connection-string' is missing.", actual.Error);
+            }
+        }
+
+        [Fact]
+        public void RequiresContainerOption()
+        {
+            // Arrange
+            using (var tc = new TestContext())
+            {
+                // Act
+                var actual = tc.ExecuteCommand(
+                    new[]
+                    {
+                        "--connection-string", tc.ConnectionString,
+                        "--path-format", tc.PathFormat
+                    },
+                    tc.Content);
+
+                // Assert
+                Assert.Equal(CommandStatus.Exited, actual.Status);
+                Assert.Equal(1, actual.ExitCode);
+                Assert.Contains("Required option 'c, container' is missing.", actual.Error);
+            }
+        }
+
         private class TestContext : IDisposable
         {
             public TestContext()
