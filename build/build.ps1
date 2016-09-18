@@ -84,7 +84,7 @@ if (-Not $SkipPack) {
     $toolPath = Join-Path $artifactsPath "ToStorage.exe"
     $unmergedExePath = (Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.exe")) | Select-Object -First 1).FullName
     $dependencies = Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.dll")) | Select-Object -ExpandProperty FullName
-    $ilmergeArguments = "/ndebug", ("/ver:" + $Version + ".0"), ("/out:" + $toolPath), $unmergedExePath
+    $ilmergeArguments = "/ndebug", ("/out:" + $toolPath), $unmergedExePath
     $ilmergeArguments += $dependencies
 
     & $ilmergePath $ilmergeArguments
