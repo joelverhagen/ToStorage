@@ -9,16 +9,24 @@ using System.Threading.Tasks;
 using Knapcode.Procommand;
 using Knapcode.ToStorage.Core.Test;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Knapcode.ToStorage.Tool.Test
 {
     public class ProgramTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public ProgramTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public async Task CanUploadToDirectAndLatestWithShortOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 // Act
                 var actual = tc.ExecuteCommand(
@@ -39,7 +47,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task CanUploadToDirectAndLatestWithLongOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 // Act
                 var actual = tc.ExecuteCommand(
@@ -60,7 +68,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task CanUploadJustToDirectWithLongOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 // Act
                 var actual = tc.ExecuteCommand(
@@ -82,7 +90,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task CanUploadJustToLatestWithLongOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 // Act
                 var actual = tc.ExecuteCommand(
@@ -104,7 +112,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public void CanUploadOnlyWhenUniqueWithShortOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 var initial = tc.ExecuteCommand(
                     new[]
@@ -136,7 +144,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public void CanUploadOnlyWhenUniqueWithLongOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 var initial = tc.ExecuteCommand(
                     new[]
@@ -168,7 +176,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task CanUploadOnlyLatestWithUniqueOnlyOption()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 tc.Content = "something";
                 var initial = tc.ExecuteCommand(
@@ -205,7 +213,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task CanSetContentTypeWithShortOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 tc.Content = "{\"foo\": 5}";
                 tc.ContentType = "application/json";
@@ -230,7 +238,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task CanSetContentTypeWithLongOptions()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 tc.Content = "{\"foo\": 5}";
                 tc.ContentType = "application/json";
@@ -255,7 +263,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task AllowsBothDirectAndLatestUploadToBeDisabled()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 // Act
                 var actual = tc.ExecuteCommand(
@@ -278,7 +286,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public async Task HasDefaultPathFormat()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 tc.Container = $"testcontainer{Guid.NewGuid().ToString().Replace("-", string.Empty)}";
                 tc.DeleteContainer = true;
@@ -315,7 +323,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public void RequiresConnectionStringOption()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 // Act
                 var actual = tc.ExecuteCommand(
@@ -337,7 +345,7 @@ namespace Knapcode.ToStorage.Tool.Test
         public void RequiresContainerOption()
         {
             // Arrange
-            using (var tc = new TestContext())
+            using (var tc = new TestContext(_output))
             {
                 // Act
                 var actual = tc.ExecuteCommand(
@@ -357,9 +365,10 @@ namespace Knapcode.ToStorage.Tool.Test
 
         private class TestContext : IDisposable
         {
-            public TestContext()
+            public TestContext(ITestOutputHelper output)
             {
                 // data
+                Output = output;
                 Content = "First line." + Environment.NewLine +
                           "Second line." + Environment.NewLine +
                           "Unique thing: " + Guid.NewGuid();
@@ -428,9 +437,20 @@ namespace Knapcode.ToStorage.Tool.Test
 
             public void VerifyCommandResult(CommandResult commandResult)
             {
-                Assert.Equal(CommandStatus.Exited, commandResult.Status);
-                Assert.Equal(0, commandResult.ExitCode);
-                Assert.Empty(commandResult.Error);
+                try
+                {
+                    Assert.Equal(CommandStatus.Exited, commandResult.Status);
+                    Assert.Equal(0, commandResult.ExitCode);
+                    Assert.Empty(commandResult.Error);
+                }
+                catch
+                {
+                    Output.WriteLine($"Status: {commandResult.Status}");
+                    Output.WriteLine($"Exit code: {commandResult.ExitCode}");
+                    Output.WriteLine($"Exception:{Environment.NewLine}{commandResult.Exception}");
+                    Output.WriteLine($"stdout:{Environment.NewLine}{commandResult.Output}");
+                    Output.WriteLine($"stderr:{Environment.NewLine}{commandResult.Error}");
+                }
             }
 
             private async Task<Uri> VerifyLineUriAsync(CommandResult commandResult, string linePrefix)
@@ -486,6 +506,7 @@ namespace Knapcode.ToStorage.Tool.Test
             public string PathFormat => $"{Prefix}/{{0}}.txt";
             public string ContentType { get; set; }
             public bool DeleteContainer { get; set; }
+            public ITestOutputHelper Output { get; }
 
             public void Dispose()
             {
