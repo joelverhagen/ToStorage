@@ -132,8 +132,8 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
                 // Assert
                 Assert.NotNull(uploadResult);
-                await tc.VerifyUriAndContentAsync(setupResult.DirectUri, "testpath/2015.01.02.03.04.05.txt", "[1, 2]");
-                await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.05.05.txt");
+                await tc.VerifyUriAndContentAsync(setupResult.DirectUri, "testpath/2015.01.02.03.04.05.0060000.txt", "[1, 2]");
+                await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.05.05.0060000.txt");
                 Assert.NotNull(uploadResult.DirectETag);
                 await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
                 Assert.NotNull(uploadResult.LatestETag);
@@ -216,7 +216,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
                 // Assert
                 Assert.NotNull(uploadResult);
-                await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.04.05.txt");
+                await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.04.05.0060000.txt");
                 Assert.NotNull(uploadResult.DirectETag);
                 await tc.VerifyUriAndContentAsync(uploadResult.LatestUri, "testpath/latest.txt");
                 Assert.NotNull(uploadResult.LatestETag);
@@ -283,7 +283,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
 
                 // Assert
                 Assert.NotNull(uploadResult);
-                await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.04.05.txt");
+                await tc.VerifyUriAndContentAsync(uploadResult.DirectUri, "testpath/2015.01.02.03.04.05.0060000.txt");
                 Assert.NotNull(uploadResult.DirectETag);
                 Assert.Null(uploadResult.LatestUri);
                 Assert.Null(uploadResult.LatestETag);
@@ -369,7 +369,7 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             public TestContext()
             {
                 // data
-                UtcNow = new DateTimeOffset(2015, 1, 2, 3, 4, 5, TimeSpan.Zero);
+                UtcNow = new DateTimeOffset(2015, 1, 2, 3, 4, 5, 6, TimeSpan.Zero);
                 Content = "foobar";
                 Prefix = Guid.NewGuid() + "/testpath";
                 UploadRequest = new UploadRequest

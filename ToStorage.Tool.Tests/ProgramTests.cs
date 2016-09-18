@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -30,7 +31,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: true, latest: true);
+                await tc.VerifyContentAsync(actual, direct: true, latest: true);
             }
         }
 
@@ -51,7 +52,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: true, latest: true);
+                await tc.VerifyContentAsync(actual, direct: true, latest: true);
             }
         }
 
@@ -73,7 +74,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: true, latest: false);
+                await tc.VerifyContentAsync(actual, direct: true, latest: false);
             }
         }
 
@@ -95,7 +96,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: true, latest: false);
+                await tc.VerifyContentAsync(actual, direct: true, latest: false);
             }
         }
 
@@ -117,7 +118,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: false, latest: true);
+                await tc.VerifyContentAsync(actual, direct: false, latest: true);
             }
         }
 
@@ -139,7 +140,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: false, latest: true);
+                await tc.VerifyContentAsync(actual, direct: false, latest: true);
             }
         }
 
@@ -228,7 +229,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: true, latest: true);
+                await tc.VerifyContentAsync(actual, direct: true, latest: true);
             }
         }
 
@@ -253,7 +254,44 @@ namespace Knapcode.ToStorage.Tool.Tests
                     tc.Content);
 
                 // Assert
-                await tc.VerifyContent(actual, direct: true, latest: true);
+                await tc.VerifyContentAsync(actual, direct: true, latest: true);
+            }
+        }
+
+        [Fact]
+        public async Task HasDefaultPathFormat()
+        {
+            // Arrange
+            using (var tc = new TestContext())
+            {
+                tc.Container = $"testcontainer{Guid.NewGuid().ToString().Replace("-", string.Empty)}";
+                tc.DeleteContainer = true;
+
+                var minTimestamp = DateTimeOffset.UtcNow;
+
+                // Act
+                var actual = tc.ExecuteCommand(
+                    new[]
+                    {
+                        "-s", tc.ConnectionString,
+                        "-c", tc.Container
+                    },
+                    tc.Content);
+
+                // Assert
+                var maxTimestamp = DateTimeOffset.UtcNow;
+
+                var result = await tc.VerifyContentAsync(actual, direct: true, latest: true);
+
+                var directFileName = result.DirectUri.ToString().Split('/').Last();
+                Assert.EndsWith(".txt", directFileName);
+                var unparsedTimestamp = directFileName.Substring(0, directFileName.Length - ".txt".Length);
+                var timestampLocal = DateTime.ParseExact(unparsedTimestamp, "yyyy.MM.dd.HH.mm.ss.fffffff", CultureInfo.InvariantCulture);
+                var timestamp = new DateTimeOffset(timestampLocal, TimeSpan.Zero);
+                Assert.True(timestamp >= minTimestamp, "The timestamp should be greater than or equal to the minimum.");
+                Assert.True(timestamp <= maxTimestamp, "The timestamp should be less than or equal to the maximum.");
+
+                Assert.EndsWith("/latest.txt", result.LatestUri.ToString());
             }
         }
 
@@ -313,6 +351,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                 Prefix = Guid.NewGuid() + "/testpath";
                 ConnectionString = TestSupport.ConnectionString;
                 Container = TestSupport.Container;
+                DeleteContainer = false;
                 ToolPath = GetToolPath();
             }
 
@@ -343,19 +382,24 @@ namespace Knapcode.ToStorage.Tool.Tests
                 }
             }
 
-            public async Task VerifyContent(CommandResult commandResult, bool direct, bool latest)
+            public async Task<UploadResult> VerifyContentAsync(CommandResult commandResult, bool direct, bool latest)
             {
                 VerifyCommandResult(commandResult);
 
+                var uploadResult = new UploadResult();
                 if (direct)
                 {
-                    await VerifyLineUrl(commandResult, "Direct: ");
+                    var uri = await VerifyLineUriAsync(commandResult, "Direct: ");
+                    uploadResult.DirectUri = uri;
                 }
 
                 if (latest)
                 {
-                    await VerifyLineUrl(commandResult, "Latest: ");
+                    var uri = await VerifyLineUriAsync(commandResult, "Latest: ");
+                    uploadResult.LatestUri = uri;
                 }
+
+                return uploadResult;
             }
 
             public void VerifyCommandResult(CommandResult commandResult)
@@ -365,16 +409,18 @@ namespace Knapcode.ToStorage.Tool.Tests
                 Assert.Empty(commandResult.Error);
             }
 
-            private async Task VerifyLineUrl(CommandResult commandResult, string linePrefix)
+            private async Task<Uri> VerifyLineUriAsync(CommandResult commandResult, string linePrefix)
             {
-                var directLine = commandResult.OutputLines.FirstOrDefault(l => l.StartsWith(linePrefix));
-                Assert.NotNull(directLine);
+                var line = commandResult.OutputLines.FirstOrDefault(l => l.StartsWith(linePrefix));
+                Assert.NotNull(line);
 
-                var directUrl = directLine.Split(new[] { ' ' }, 2)[1];
-                var actualContent = await GetContentAsync(directUrl);
+                var uri = line.Split(new[] { ' ' }, 2)[1];
+                var actualContent = await GetContentAsync(uri);
 
                 Assert.Equal(Content, actualContent.Content);
                 Assert.Equal(ContentType, actualContent.ContentType);
+
+                return new Uri(uri);
             }
 
             private static string GetToolPath()
@@ -404,21 +450,35 @@ namespace Knapcode.ToStorage.Tool.Tests
             public string Content { get; set; }
             public string Prefix { get; }
             public string ConnectionString { get; }
-            public string Container { get; }
+            public string Container { get; set; }
             public string ToolPath { get; }
             public string PathFormat => $"{Prefix}/{{0}}.txt";
             public string ContentType { get; set; }
+            public bool DeleteContainer { get; set; }
 
             public void Dispose()
             {
-                TestSupport.DeleteBlobsWithPrefix(Prefix);
+                if (DeleteContainer)
+                {
+                    TestSupport.DeleteContainer(Container);
+                }
+                else
+                {
+                    TestSupport.DeleteBlobsWithPrefix(Prefix);
+                }
             }
+        }
 
-            private class ContentAndContentType
-            {
-                public string Content { get; set; }
-                public string ContentType { get; set; }
-            }
+        private class ContentAndContentType
+        {
+            public string Content { get; set; }
+            public string ContentType { get; set; }
+        }
+
+        private class UploadResult
+        {
+            public Uri DirectUri { get; set; }
+            public Uri LatestUri { get; set; }
         }
     }
 }

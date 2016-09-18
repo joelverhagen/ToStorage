@@ -36,7 +36,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
 
         public string GetDirect(string pathFormat, DateTimeOffset dateTimeOffset)
         {
-            return string.Format(pathFormat, dateTimeOffset.ToString("yyyy.MM.dd.HH.mm.ss"));
+            return string.Format(pathFormat, dateTimeOffset.ToString("yyyy.MM.dd.HH.mm.ss.fffffff"));
         }
 
         public string GetDirect(string pathFormat, int number)

@@ -9,6 +9,12 @@ namespace Knapcode.ToStorage.Core.Tests
         public const string ConnectionString = "UseDevelopmentStorage=true";
         public const string Container = "testcontainer";
 
+        public static void DeleteContainer(string container)
+        {
+            var context = new CloudContext(ConnectionString, container);
+            context.BlobContainer.DeleteIfExists();
+        }
+
         public static void DeleteBlobsWithPrefix(string pathPrefix)
         {
             var context = new CloudContext(ConnectionString, Container);
