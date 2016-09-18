@@ -21,10 +21,13 @@ namespace Knapcode.ToStorage.Tool
 
         private static async Task<int> MainAsync(string[] args)
         {
-            if (args.Contains("--debug"))
+            if (args.Contains("--debug", StringComparer.OrdinalIgnoreCase))
             {
-                args = args.Except(new[] {"--debug"}).ToArray();
                 Debugger.Launch();
+
+                args = args
+                    .Where(x => !StringComparer.OrdinalIgnoreCase.Equals(x, "--debug"))
+                    .ToArray();
             }
 
             // parse options
@@ -63,7 +66,7 @@ namespace Knapcode.ToStorage.Tool
                                 var comparer = new OrdinalStreamEqualityComparer();
                                 return await comparer.EqualsAsync(buffer, x.Stream, CancellationToken.None);
                             },
-                            UploadDirect = options.UpdateDirect,
+                            UploadDirect = !options.NoDirect,
                             Trace = Console.Out
                         };
 
@@ -80,10 +83,10 @@ namespace Knapcode.ToStorage.Tool
                         Container = options.Container,
                         ContentType = options.ContentType,
                         PathFormat = options.PathFormat,
-                        UploadLatest = options.UpdateLatest,
+                        UploadDirect = !options.NoDirect,
+                        UploadLatest = !options.NoLatest,
                         Stream = stdin,
-                        Trace = Console.Out,
-                        UploadDirect = options.UpdateDirect
+                        Trace = Console.Out
                     };
 
                     // upload

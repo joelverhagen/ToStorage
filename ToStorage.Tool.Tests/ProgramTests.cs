@@ -15,7 +15,7 @@ namespace Knapcode.ToStorage.Tool.Tests
     public class ProgramTests
     {
         [Fact]
-        public async Task StdinCanBeUploadedToDirectAndLatestWithShortOptions()
+        public async Task CanUploadToDirectAndLatestWithShortOptions()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -36,7 +36,7 @@ namespace Knapcode.ToStorage.Tool.Tests
         }
 
         [Fact]
-        public async Task StdinCanBeUploadedToDirectAndLatestWithLongOptions()
+        public async Task CanUploadToDirectAndLatestWithLongOptions()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -57,29 +57,7 @@ namespace Knapcode.ToStorage.Tool.Tests
         }
 
         [Fact]
-        public async Task StdinCanBeUploadedJustToDirectWithShortOptions()
-        {
-            // Arrange
-            using (var tc = new TestContext())
-            {
-                // Act
-                var actual = tc.ExecuteCommand(
-                    new[]
-                    {
-                        "-s", tc.ConnectionString,
-                        "-c", tc.Container,
-                        "-f", tc.PathFormat,
-                        "-l", "false"
-                    },
-                    tc.Content);
-
-                // Assert
-                await tc.VerifyContentAsync(actual, direct: true, latest: false);
-            }
-        }
-
-        [Fact]
-        public async Task StdinCanBeUploadedJustToDirectWithWithLongOptions()
+        public async Task CanUploadJustToDirectWithLongOptions()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -91,7 +69,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                         "--connection-string", tc.ConnectionString,
                         "--container", tc.Container,
                         "--path-format", tc.PathFormat,
-                        "--update-latest", "false"
+                        "--no-latest"
                     },
                     tc.Content);
 
@@ -101,29 +79,7 @@ namespace Knapcode.ToStorage.Tool.Tests
         }
 
         [Fact]
-        public async Task StdinCanBeUploadedJustToLatestWithShortOptions()
-        {
-            // Arrange
-            using (var tc = new TestContext())
-            {
-                // Act
-                var actual = tc.ExecuteCommand(
-                    new[]
-                    {
-                        "-s", tc.ConnectionString,
-                        "-c", tc.Container,
-                        "-f", tc.PathFormat,
-                        "-d", "false"
-                    },
-                    tc.Content);
-
-                // Assert
-                await tc.VerifyContentAsync(actual, direct: false, latest: true);
-            }
-        }
-
-        [Fact]
-        public async Task StdinCanBeUploadedJustToLatestWithLongOptions()
+        public async Task CanUploadJustToLatestWithLongOptions()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -135,7 +91,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                         "--connection-string", tc.ConnectionString,
                         "--container", tc.Container,
                         "--path-format", tc.PathFormat,
-                        "--update-direct", "false"
+                        "--no-direct"
                     },
                     tc.Content);
 
@@ -198,7 +154,7 @@ namespace Knapcode.ToStorage.Tool.Tests
                         "--connection-string", tc.ConnectionString,
                         "--container", tc.Container,
                         "--path-format", tc.PathFormat,
-                        "--only-unique", "true"
+                        "--only-unique"
                     },
                     tc.Content);
 
@@ -255,6 +211,29 @@ namespace Knapcode.ToStorage.Tool.Tests
 
                 // Assert
                 await tc.VerifyContentAsync(actual, direct: true, latest: true);
+            }
+        }
+
+        [Fact]
+        public async Task AllowsBothDirectAndLatestUploadToBeDisabled()
+        {
+            // Arrange
+            using (var tc = new TestContext())
+            {
+                // Act
+                var actual = tc.ExecuteCommand(
+                    new[]
+                    {
+                        "-s", tc.ConnectionString,
+                        "-c", tc.Container,
+                        "-f", tc.PathFormat,
+                        "--no-direct",
+                        "--no-latest"
+                    },
+                    tc.Content);
+
+                // Assert
+                await tc.VerifyContentAsync(actual, direct: false, latest: false);
             }
         }
 
@@ -392,11 +371,19 @@ namespace Knapcode.ToStorage.Tool.Tests
                     var uri = await VerifyLineUriAsync(commandResult, "Direct: ");
                     uploadResult.DirectUri = uri;
                 }
+                else
+                {
+                    VerifyNoLine(commandResult, "Direct: ");
+                }
 
                 if (latest)
                 {
                     var uri = await VerifyLineUriAsync(commandResult, "Latest: ");
                     uploadResult.LatestUri = uri;
+                }
+                else
+                {
+                    VerifyNoLine(commandResult, "Latest: ");
                 }
 
                 return uploadResult;
@@ -411,7 +398,7 @@ namespace Knapcode.ToStorage.Tool.Tests
 
             private async Task<Uri> VerifyLineUriAsync(CommandResult commandResult, string linePrefix)
             {
-                var line = commandResult.OutputLines.FirstOrDefault(l => l.StartsWith(linePrefix));
+                var line = commandResult.OutputLines.FirstOrDefault(l => l != null && l.StartsWith(linePrefix));
                 Assert.NotNull(line);
 
                 var uri = line.Split(new[] { ' ' }, 2)[1];
@@ -421,6 +408,12 @@ namespace Knapcode.ToStorage.Tool.Tests
                 Assert.Equal(ContentType, actualContent.ContentType);
 
                 return new Uri(uri);
+            }
+
+            private void VerifyNoLine(CommandResult commandResult, string linePrefix)
+            {
+                var line = commandResult.OutputLines.FirstOrDefault(l => l != null && l.StartsWith(linePrefix));
+                Assert.Null(line);
             }
 
             private static string GetToolPath()

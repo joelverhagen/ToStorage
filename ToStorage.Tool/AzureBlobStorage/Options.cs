@@ -16,13 +16,13 @@ namespace Knapcode.ToStorage.Tool.AzureBlobStorage
         [Option('t', "content-type", Required = false, Default = "text/plain", HelpText = "The content type to set on the blob.")]
         public string ContentType { get; set; }
 
-        [Option('l', "update-latest", Required = false, Default = true, HelpText = "Whether or not to set the 'latest' blob.")]
-        public bool UpdateLatest { get; set; }
+        [Option("no-latest", Required = false, Default = false, HelpText = "Don't upload the latest blob.")]
+        public bool NoLatest { get; set; }
 
-        [Option('d', "update-direct", Required = false, Default = true, HelpText = "Whether or not to set the 'direct' blob.")]
-        public bool UpdateDirect { get; set; }
+        [Option("no-direct", Required = false, Default = false, HelpText = "Don't upload the direct blob.")]
+        public bool NoDirect { get; set; }
 
-        [Option('u', "only-unique", Required = false, Default = false, HelpText = "Whether or not to only update the 'latest' blob if the 'latest' blob will change.")]
+        [Option('u', "only-unique", Required = false, Default = false, HelpText = "Whether or not to only upload the 'latest' blob if the 'latest' blob will change.")]
         public bool OnlyUnique { get; set; }
     }
 }
