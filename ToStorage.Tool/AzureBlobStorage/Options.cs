@@ -22,7 +22,7 @@ namespace Knapcode.ToStorage.Tool.AzureBlobStorage
         [Option("no-direct", Required = false, Default = false, HelpText = "Don't upload the direct blob.")]
         public bool NoDirect { get; set; }
 
-        [Option('u', "only-unique", Required = false, Default = false, HelpText = "Whether or not to only upload the 'latest' blob if the 'latest' blob will change.")]
+        [Option('u', "only-unique", Required = false, Default = false, HelpText = "Only upload if the current upload is different than the lastest blob.")]
         public bool OnlyUnique { get; set; }
     }
 }

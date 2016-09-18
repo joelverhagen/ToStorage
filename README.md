@@ -39,14 +39,12 @@ Knapcode.ToStorage 0.0.0.0
   -t, --content-type         (Default: text/plain) The content type to set on
                              the blob.
 
-  -l, --update-latest        (Default: true) Whether or not to set the 'latest'
-                             blob.
+  --no-latest                (Default: false) Don't upload the latest blob.
 
-  -d, --update-direct        (Default: true) Whether or not to set the 'direct'
-                             blob.
+  --no-direct                (Default: false) Don't upload the direct blob.
 
-  -u, --only-unique          (Default: false) Whether or not to only update the
-                             'latest' blob if the 'latest' blob will change.
+  -u, --only-unique          (Default: false) Only upload if the current upload
+                             is different than the lastest blob.
 
   --help                     Display this help screen.
 
