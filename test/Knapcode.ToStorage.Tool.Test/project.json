@@ -1,0 +1,11 @@
+﻿{
+  "dependencies": {
+    "Knapcode.Procommand": "0.3.0"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}

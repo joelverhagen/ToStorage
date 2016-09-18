@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Newtonsoft.Json": "6.0.8",
+    "WindowsAzure.Storage": "6.2.0"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}

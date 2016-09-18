@@ -10,19 +10,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage.Tool", "ToStorage.Tool\ToStorage.Tool.csproj", "{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage.Core", "ToStorage.Core\ToStorage.Core.csproj", "{6CE61B1D-4BEC-4734-AE09-299C816202BB}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{1A3F0BA5-70C5-4226-B81D-332EEE7796E8}"
 	ProjectSection(SolutionItems) = preProject
 		build\build.ps1 = build\build.ps1
 		build\packages.config = build\packages.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage.Core.Tests", "ToStorage.Core.Tests\ToStorage.Core.Tests.csproj", "{9D17385A-3B86-4923-A11E-C26A39238002}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CA9955D7-9B81-4AC2-B8A9-30CC866D11D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToStorage.Tool.Tests", "ToStorage.Tool.Tests\ToStorage.Tool.Tests.csproj", "{1B6302B3-72D8-43DB-9E9A-F709C7C3B15B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{393E7CFA-2C2E-4963-9797-3A1AB3DBAFCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knapcode.ToStorage.Core", "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.csproj", "{6CE61B1D-4BEC-4734-AE09-299C816202BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knapcode.ToStorage.Tool", "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.csproj", "{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knapcode.ToStorage.Core.Test", "test\Knapcode.ToStorage.Core.Test\Knapcode.ToStorage.Core.Test.csproj", "{9D17385A-3B86-4923-A11E-C26A39238002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knapcode.ToStorage.Tool.Test", "test\Knapcode.ToStorage.Tool.Test\Knapcode.ToStorage.Tool.Test.csproj", "{1B6302B3-72D8-43DB-9E9A-F709C7C3B15B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,14 +34,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6CE61B1D-4BEC-4734-AE09-299C816202BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6CE61B1D-4BEC-4734-AE09-299C816202BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CE61B1D-4BEC-4734-AE09-299C816202BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CE61B1D-4BEC-4734-AE09-299C816202BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9D17385A-3B86-4923-A11E-C26A39238002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9D17385A-3B86-4923-A11E-C26A39238002}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D17385A-3B86-4923-A11E-C26A39238002}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -52,5 +56,9 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1A3F0BA5-70C5-4226-B81D-332EEE7796E8} = {FC05EAF9-8F03-4B4A-A277-0FEEF5A38B28}
+		{6CE61B1D-4BEC-4734-AE09-299C816202BB} = {CA9955D7-9B81-4AC2-B8A9-30CC866D11D1}
+		{19EEF4EA-0D25-470B-A1D4-84A9CBBD8EAF} = {CA9955D7-9B81-4AC2-B8A9-30CC866D11D1}
+		{9D17385A-3B86-4923-A11E-C26A39238002} = {393E7CFA-2C2E-4963-9797-3A1AB3DBAFCB}
+		{1B6302B3-72D8-43DB-9E9A-F709C7C3B15B} = {393E7CFA-2C2E-4963-9797-3A1AB3DBAFCB}
 	EndGlobalSection
 EndGlobal
