@@ -459,7 +459,8 @@ namespace Knapcode.ToStorage.Tool.Tests
 
                 return Path.Combine(
                     repositoryRoot,
-                    "ToStorage.Tool",
+                    "src",
+                    "Knapcode.ToStorage.Tool",
                     "bin",
                     "Debug",
                     "ToStorage.exe");
