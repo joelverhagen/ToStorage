@@ -445,6 +445,9 @@ namespace Knapcode.ToStorage.Tool.Test
                 }
                 catch
                 {
+                    Output.WriteLine($"File name: {commandResult.Command.FileName}");
+                    Output.WriteLine($"Arguments: {commandResult.Command.Arguments}");
+                    Output.WriteLine($"Working directory: {commandResult.Command.WorkingDirectory}");
                     Output.WriteLine($"Status: {commandResult.Status}");
                     Output.WriteLine($"Exit code: {commandResult.ExitCode}");
                     Output.WriteLine($"Exception:{Environment.NewLine}{commandResult.Exception}");
