@@ -1,11 +1,11 @@
-version: 0.10.{build}
+version: 0.10.0.{build}
 skip_tags: true
 assembly_info:
   patch: true
   file: AssemblyInfo.cs
-  assembly_version: '{version}.0'
-  assembly_file_version: '{version}.0'
-  assembly_informational_version: '{version}.0-$(APPVEYOR_REPO_COMMIT)'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}-$(APPVEYOR_REPO_COMMIT)'
 build_script:
 - ps: ".\\build.ps1 -Version:$env:APPVEYOR_BUILD_VERSION -SkipTests -StartEmulator"
 test: on

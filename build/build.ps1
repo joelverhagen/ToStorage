@@ -23,6 +23,10 @@ if (-Not $Version) {
         Select-Object -First 1
 }
 
+# set the NuGet package version
+$parsedVersion = [version]$version
+$packVersion = ([version]::new($parsedVersion.Major, $parsedVersion.Minor, $parsedVersion.Build)).ToString();
+
 # download nuget.exe
 if (-Not (Test-Path $nugetPath)) {
 	Invoke-WebRequest $nugetUrl -OutFile $nugetPath
@@ -90,11 +94,11 @@ if (-Not $SkipPack) {
     & $ilmergePath $ilmergeArguments
 
     # NuGet pack core
-    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.csproj") -OutputDirectory $artifactsPath -Version $Version -Prop Configuration=Release
+    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.csproj") -OutputDirectory $artifactsPath -Version $packVersion -Prop Configuration=Release
 
     # NuGet pack tool
-    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $Version -BasePath $rootPath
+    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $packVersion -BasePath $rootPath
 
     # zip tool
-    Compress-Archive -Path $toolPath -DestinationPath (Join-Path $artifactsPath ("ToStorage." + $Version + ".zip")) -CompressionLevel Optimal -Force
+    Compress-Archive -Path $toolPath -DestinationPath (Join-Path $artifactsPath ("ToStorage." + $packVersion + ".zip")) -CompressionLevel Optimal -Force
 }
