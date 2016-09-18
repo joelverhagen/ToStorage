@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Knapcode.ToStorage.Tool.Tests
 {
-    public class EndToEndTests
+    public class ProgramTests
     {
         [Fact]
         public async Task StdinCanBeUploadedToDirectAndLatestWithShortOptions()
