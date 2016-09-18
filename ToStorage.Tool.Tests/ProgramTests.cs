@@ -101,7 +101,7 @@ namespace Knapcode.ToStorage.Tool.Tests
         }
 
         [Fact]
-        public void StdinUploadedOnlyWhenUniqueWithShortOptions()
+        public void CanUploadOnlyWhenUniqueWithShortOptions()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -133,7 +133,7 @@ namespace Knapcode.ToStorage.Tool.Tests
         }
 
         [Fact]
-        public void StdinUploadedOnlyWhenUniqueWithLongOptions()
+        public void CanUploadOnlyWhenUniqueWithLongOptions()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -165,7 +165,44 @@ namespace Knapcode.ToStorage.Tool.Tests
         }
 
         [Fact]
-        public async Task StdinContentTypeCanBeSetWithShortOptions()
+        public async Task CanUploadOnlyLatestWithUniqueOnlyOption()
+        {
+            // Arrange
+            using (var tc = new TestContext())
+            {
+                tc.Content = "something";
+                var initial = tc.ExecuteCommand(
+                    new[]
+                    {
+                        "-s", tc.ConnectionString,
+                        "-c", tc.Container,
+                        "-f", tc.PathFormat,
+                        "--no-direct"
+                    },
+                    tc.Content);
+
+                tc.Content = "something else";
+
+                // Act
+                var actual = tc.ExecuteCommand(
+                    new[]
+                    {
+                        "--connection-string", tc.ConnectionString,
+                        "--container", tc.Container,
+                        "--path-format", tc.PathFormat,
+                        "--no-direct",
+                        "--only-unique"
+                    },
+                    tc.Content);
+
+                // Assert
+                await tc.VerifyContentAsync(actual, direct: false, latest: true);
+                Assert.Contains("Gettings the existing latest... different! The provided content will be uploaded.", actual.Output);
+            }
+        }
+
+        [Fact]
+        public async Task CanSetContentTypeWithShortOptions()
         {
             // Arrange
             using (var tc = new TestContext())
@@ -190,7 +227,7 @@ namespace Knapcode.ToStorage.Tool.Tests
         }
 
         [Fact]
-        public async Task StdinContentTypeCanBeSetWithLongOptions()
+        public async Task CanSetContentTypeWithLongOptions()
         {
             // Arrange
             using (var tc = new TestContext())
