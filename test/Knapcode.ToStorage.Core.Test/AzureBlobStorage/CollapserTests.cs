@@ -118,8 +118,7 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 await tc.Target.CollapseAsync(tc.CollapseRequest);
 
                 // Assert
-                var blobs = tc.CloudContext.BlobContainer.ListBlobs(tc.Prefix, true);
-                Assert.Equal(0, blobs.Count());
+                Assert.False(tc.CloudContext.BlobContainer.Exists());
             }
         }
 
@@ -130,11 +129,12 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 // data
                 UtcNow = new DateTimeOffset(2015, 1, 2, 3, 4, 5, 6, TimeSpan.Zero);
                 Content = "foobar";
-                Prefix = Guid.NewGuid() + "/testpath";
+                Container = TestSupport.GetTestContainer();
+                Prefix = "testpath";
                 UploadRequest = new UploadRequest
                 {
                     ConnectionString = TestSupport.ConnectionString,
-                    Container = TestSupport.Container,
+                    Container = Container,
                     ContentType = "text/plain",
                     PathFormat = Prefix + "/{0}.txt",
                     UploadDirect = true,
@@ -165,7 +165,6 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 // target
                 Target = new Collapser(PathBuilder);
             }
-
             public string Prefix { get; }
 
             public CloudContext CloudContext { get; }
@@ -185,6 +184,7 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
             public Client Client { get; }
 
             public Mock<ISystemTime> SystemTime { get; }
+            public string Container { get; }
 
             public async Task UploadAsync(string content)
             {
@@ -203,7 +203,7 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
 
             public void Dispose()
             {
-                TestSupport.DeleteBlobsWithPrefix(Prefix);
+                TestSupport.DeleteContainer(Container);
             }
         }
     }

@@ -288,9 +288,6 @@ namespace Knapcode.ToStorage.Tool.Test
             // Arrange
             using (var tc = new TestContext(_output))
             {
-                tc.Container = $"testcontainer{Guid.NewGuid().ToString().Replace("-", string.Empty)}";
-                tc.DeleteContainer = true;
-
                 var minTimestamp = DateTimeOffset.UtcNow;
 
                 // Act
@@ -373,10 +370,9 @@ namespace Knapcode.ToStorage.Tool.Test
                           "Second line." + Environment.NewLine +
                           "Unique thing: " + Guid.NewGuid();
                 ContentType = "text/plain";
-                Prefix = Guid.NewGuid() + "/testpath";
+                Prefix = "testpath";
                 ConnectionString = TestSupport.ConnectionString;
-                Container = TestSupport.Container;
-                DeleteContainer = false;
+                Container = TestSupport.GetTestContainer();
                 ToolPath = GetToolPath();
             }
 
@@ -508,23 +504,15 @@ namespace Knapcode.ToStorage.Tool.Test
             public string Content { get; set; }
             public string Prefix { get; }
             public string ConnectionString { get; }
-            public string Container { get; set; }
+            public string Container { get; }
             public string ToolPath { get; }
             public string PathFormat => $"{Prefix}/{{0}}.txt";
             public string ContentType { get; set; }
-            public bool DeleteContainer { get; set; }
             public ITestOutputHelper Output { get; }
 
             public void Dispose()
             {
-                if (DeleteContainer)
-                {
-                    TestSupport.DeleteContainer(Container);
-                }
-                else
-                {
-                    TestSupport.DeleteBlobsWithPrefix(Prefix);
-                }
+                TestSupport.DeleteContainer(Container);
             }
         }
 

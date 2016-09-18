@@ -147,14 +147,14 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 // data
                 UtcNow = new DateTimeOffset(2015, 1, 2, 3, 4, 5, 6, TimeSpan.Zero);
                 Content = "newContent";
-                Prefix = Guid.NewGuid() + "/testpath";
+                Container = TestSupport.GetTestContainer();
                 EqualsAsyncCalled = false;
                 UniqueUploadRequest = new UniqueUploadRequest
                 {
                     ConnectionString = TestSupport.ConnectionString,
-                    Container = TestSupport.Container,
+                    Container = Container,
                     ContentType = "text/plain",
-                    PathFormat = Prefix + "/{0}.txt",
+                    PathFormat = "testpath/{0}.txt",
                     UploadDirect = true,
                     Stream = new MemoryStream(Encoding.UTF8.GetBytes(Content)),
                     Trace = TextWriter.Null,
@@ -200,8 +200,8 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
             public Mock<ISystemTime> SystemTime { get; }
 
             public DateTimeOffset UtcNow { get; set; }
-            public string Prefix { get; }
             public bool EqualsAsyncCalled { get; set; }
+            public string Container { get; }
 
             public async Task<HttpResponseMessage> GetBlobAsync(Uri uri)
             {
@@ -226,7 +226,7 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
 
             public void Dispose()
             {
-                TestSupport.DeleteBlobsWithPrefix(Prefix);
+                TestSupport.DeleteContainer(Container);
             }
         }
     }
