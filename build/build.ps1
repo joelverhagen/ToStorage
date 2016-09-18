@@ -1,7 +1,12 @@
+param ( [switch] $SkipTests, [switch] $StartEmulator, [switch] $SkipPack )
+
 # constants
 $version = "0.9.0"
 $msbuildPath = Join-Path ${env:ProgramFiles(x86)} "MSBuild\14.0\Bin\msbuild.exe"
 $nugetUrl = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+$emulatorMsiUrl = "http://download.microsoft.com/download/7/B/5/7B53AA52-9519-467C-8DC7-1A1FF72500D9/MicrosoftAzureStorageEmulator.msi"
+$emulatorMsiPath = [io.path]::Combine($env:APPVEYOR_BUILD_FOLDER, "packages", "MicrosoftAzureStorageEmulator.msi")
+$emulatorPath = "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe"
 
 # build paths
 $buildPath = $PSScriptRoot
@@ -26,59 +31,62 @@ if (-Not (Test-Path $artifactsPath)) {
     New-Item -Path $artifactsPath -ItemType directory
 }
 
-# find xunit console runner
-$xunitPath = Get-ChildItem (Join-Path $rootPath "packages\**\xunit.console.exe") -Recurse
-if (!$xunitPath) {
-    throw "The build script could not find ilmerge.exe"
+if ($StartEmulator) {
+    # start Azure Storage emulator
+    Invoke-WebRequest -Uri $emulatorMsiUrl -OutFile $emulatorMsiPath
+    cmd /c start /wait msiexec /i $msiPath /quiet
+    & $emulatorPath start
+    & $emulatorPath status
 }
 
-$xunitPath = $xunitPath.FullName
+if (-Not $SkipTests) {
+    # find xunit console runner
+    $xunitPath = Get-ChildItem (Join-Path $rootPath "packages\**\xunit.console.exe") -Recurse
+    if (!$xunitPath) {
+        throw "The build script could not find ilmerge.exe"
+    }
 
-# start Azure Storage emulator
-$msiPath = [io.path]::Combine($env:APPVEYOR_BUILD_FOLDER, "packages", "MicrosoftAzureStorageEmulator.msi")
-$msiUrl = "http://download.microsoft.com/download/7/B/5/7B53AA52-9519-467C-8DC7-1A1FF72500D9/MicrosoftAzureStorageEmulator.msi"
-Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath
-cmd /c start /wait msiexec /i $msiPath /quiet
-$emulatorPath = "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe"
-& $emulatorPath start
-& $emulatorPath status
+    $xunitPath = $xunitPath.FullName
 
-# test
-$testProjects = Get-ChildItem (Join-Path $rootPath "test")
-foreach ($testProject in $testProjects) {
-    $name = $testProject.Name
-    $testAssembly = [io.path]::Combine($testProject.FullName, "bin", "Release", $testProject.Name + ".dll")
-    
-    & $xunitPath $testAssembly -verbose -diagnostics -parallel all
+    # test
+    $testProjects = Get-ChildItem (Join-Path $rootPath "test")
+    foreach ($testProject in $testProjects) {
+        $name = $testProject.Name
+        $testAssembly = [io.path]::Combine($testProject.FullName, "bin", "Release", $testProject.Name + ".dll")
+        
+        & $xunitPath $testAssembly -verbose -diagnostics -parallel all
 
-    if (-Not $?) {
-        throw "Test assembly for project $name failed."
+        if (-Not $?) {
+            throw "Test assembly for project $name failed."
+        }
     }
 }
 
-# find ilmerge
-$ilmergePath = Get-ChildItem (Join-Path $rootPath "packages\**\ilmerge.exe") -Recurse
-if (!$ilmergePath) {
-    throw "The build script could not find ilmerge.exe"
+if (-Not $SkipPack) {
+    # find ilmerge
+    $ilmergePath = Get-ChildItem (Join-Path $rootPath "packages\**\ilmerge.exe") -Recurse
+    if (!$ilmergePath) {
+        throw "The build script could not find ilmerge.exe"
+    }
+
+    $ilmergePath = $ilmergePath.FullName
+
+    # ilmerge
+    $originalTool = "src\Knapcode.ToStorage.Tool\bin\Release"
+    $toolPath = Join-Path $artifactsPath "ToStorage.exe"
+    $unmergedExePath = (Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.exe")) | Select-Object -First 1).FullName
+    $dependencies = Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.dll")) | Select-Object -ExpandProperty FullName
+    $ilmergeArguments = "/ndebug", ("/ver:" + $version + ".0"), ("/out:" + $toolPath), $unmergedExePath
+    $ilmergeArguments += $dependencies
+
+    & $ilmergePath $ilmergeArguments
+
+    # NuGet pack core
+    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.csproj") -OutputDirectory $artifactsPath -Version $version -Prop Configuration=Release
+
+    # NuGet pack tool
+    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $version -BasePath $rootPath
+
+    # zip tool
+    Compress-Archive -Path $toolPath -DestinationPath (Join-Path $artifactsPath ("ToStorage." + $version + ".zip")) -CompressionLevel Optimal -Force
 }
-
-$ilmergePath = $ilmergePath.FullName
-
-# ilmerge
-$originalTool = "src\Knapcode.ToStorage.Tool\bin\Release"
-$toolPath = Join-Path $artifactsPath "ToStorage.exe"
-$unmergedExePath = (Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.exe")) | Select-Object -First 1).FullName
-$dependencies = Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.dll")) | Select-Object -ExpandProperty FullName
-$ilmergeArguments = "/ndebug", ("/ver:" + $version + ".0"), ("/out:" + $toolPath), $unmergedExePath
-$ilmergeArguments += $dependencies
-
-& $ilmergePath $ilmergeArguments
-
-# NuGet pack core
-& $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.csproj") -OutputDirectory $artifactsPath -Version $version -Prop Configuration=Release
-
-# NuGet pack tool
-& $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $version -BasePath $rootPath
-
-# zip tool
-Compress-Archive -Path $toolPath -DestinationPath (Join-Path $artifactsPath ("ToStorage." + $version + ".zip")) -CompressionLevel Optimal -Force
