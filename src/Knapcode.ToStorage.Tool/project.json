@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
-    "CommandLineParser": "2.0.275-beta"
+    "CommandLineParser": "2.0.275-beta",
+    "FSharp.Core": "4.0.0.1"
   },
   "frameworks": {
     "net45": {}
