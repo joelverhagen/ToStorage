@@ -1,0 +1,7 @@
+version: 0.9.{build}
+build_script:
+- ps: ".\\build.ps1 -Version:$env:APPVEYOR_BUILD_VERSION -SkipTests -StartEmulator"
+test: on
+artifacts:
+- path: artifacts\*.nupkg
+- path: artifacts\*.zip

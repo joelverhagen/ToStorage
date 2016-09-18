@@ -1,7 +1,6 @@
-param ( [switch] $SkipTests, [switch] $StartEmulator, [switch] $SkipPack )
+param ( [string] $Version, [switch] $SkipTests, [switch] $StartEmulator, [switch] $SkipPack )
 
 # constants
-$version = "0.9.0"
 $msbuildPath = Join-Path ${env:ProgramFiles(x86)} "MSBuild\14.0\Bin\msbuild.exe"
 $nugetUrl = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 $emulatorMsiUrl = "http://download.microsoft.com/download/7/B/5/7B53AA52-9519-467C-8DC7-1A1FF72500D9/MicrosoftAzureStorageEmulator.msi"
@@ -14,6 +13,15 @@ $rootPath = Join-Path $buildPath ".."
 $nugetPath = Join-Path $buildPath "nuget.exe"
 $solutionPath = Join-Path $rootPath "ToStorage.sln"
 $artifactsPath = Join-Path $rootPath "artifacts"
+
+# set the default version, if necessary
+if (-Not $Version) {
+    $Version = Get-Content (Join-Path $rootPath "appveyor.yml") | `
+        ? { $_.StartsWith("version:") } | `
+        % { $_.Substring("version:".Length).Trim() } | `
+        % { $_.Replace("{build}", "0") }
+        Select-Object -First 1
+}
 
 # download nuget.exe
 if (-Not (Test-Path $nugetPath)) {
@@ -76,17 +84,17 @@ if (-Not $SkipPack) {
     $toolPath = Join-Path $artifactsPath "ToStorage.exe"
     $unmergedExePath = (Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.exe")) | Select-Object -First 1).FullName
     $dependencies = Get-ChildItem (Join-Path $rootPath (Join-Path $originalTool "*.dll")) | Select-Object -ExpandProperty FullName
-    $ilmergeArguments = "/ndebug", ("/ver:" + $version + ".0"), ("/out:" + $toolPath), $unmergedExePath
+    $ilmergeArguments = "/ndebug", ("/ver:" + $Version + ".0"), ("/out:" + $toolPath), $unmergedExePath
     $ilmergeArguments += $dependencies
 
     & $ilmergePath $ilmergeArguments
 
     # NuGet pack core
-    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.csproj") -OutputDirectory $artifactsPath -Version $version -Prop Configuration=Release
+    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.csproj") -OutputDirectory $artifactsPath -Version $Version -Prop Configuration=Release
 
     # NuGet pack tool
-    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $version -BasePath $rootPath
+    & $nugetPath pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $Version -BasePath $rootPath
 
     # zip tool
-    Compress-Archive -Path $toolPath -DestinationPath (Join-Path $artifactsPath ("ToStorage." + $version + ".zip")) -CompressionLevel Optimal -Force
+    Compress-Archive -Path $toolPath -DestinationPath (Join-Path $artifactsPath ("ToStorage." + $Version + ".zip")) -CompressionLevel Optimal -Force
 }
