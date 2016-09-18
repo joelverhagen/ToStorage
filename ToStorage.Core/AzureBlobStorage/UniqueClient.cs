@@ -38,6 +38,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                 };
 
                 request.Trace.Write("Gettings the existing latest...");
+                string etag = null;
                 using (var currentResult = await _innerClient.GetLatestStreamAsync(getLatestRequest))
                 {
                     // return nothing if the streams are equivalent
@@ -57,13 +58,18 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                             return null;
                         }
 
-                        // seek to the beginning for comparing the content
-                        request.Stream.Seek(0, SeekOrigin.Begin);
-                        if (await request.EqualsAsync(currentResult))
+                        if (request.EqualsAsync != null)
                         {
-                            request.Trace.WriteLine(" equivalent! No upload required.");
-                            return null;
+                            // seek to the beginning for comparing the content
+                            request.Stream.Seek(0, SeekOrigin.Begin);
+                            if (await request.EqualsAsync(currentResult))
+                            {
+                                request.Trace.WriteLine(" equivalent! No upload required.");
+                                return null;
+                            }
                         }
+
+                        etag = currentResult.ETag;
 
                         request.Trace.WriteLine(" different! The provided content will be uploaded.");
                     }
@@ -71,26 +77,26 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                     {
                         request.Trace.WriteLine(" non-existent! The provided content will be uploaded.");
                     }
-
-                    // Seek to the beginning for uploading the blob.
-                    request.Stream.Seek(0, SeekOrigin.Begin);
-                    var uploadRequest = new UploadRequest
-                    {
-                        ConnectionString = request.ConnectionString,
-                        ETag = currentResult?.ETag,
-                        UseETags = request.UseETag,
-                        Stream = request.Stream,
-                        PathFormat = request.PathFormat,
-                        Container = request.Container,
-                        Trace = request.Trace,
-                        UploadDirect = request.UploadDirect,
-                        UploadLatest = true,
-                        ContentType = request.ContentType,
-                        Type = request.Type
-                    };
-
-                    return await _innerClient.UploadAsync(uploadRequest);
                 }
+
+                // Seek to the beginning for uploading the blob.
+                request.Stream.Seek(0, SeekOrigin.Begin);
+                var uploadRequest = new UploadRequest
+                {
+                    ConnectionString = request.ConnectionString,
+                    ETag = etag,
+                    UseETags = request.UseETag,
+                    Stream = request.Stream,
+                    PathFormat = request.PathFormat,
+                    Container = request.Container,
+                    Trace = request.Trace,
+                    UploadDirect = request.UploadDirect,
+                    UploadLatest = true,
+                    ContentType = request.ContentType,
+                    Type = request.Type
+                };
+
+                return await _innerClient.UploadAsync(uploadRequest);
             }
         }
 

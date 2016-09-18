@@ -61,11 +61,7 @@ namespace Knapcode.ToStorage.Tool
                             ContentType = options.ContentType,
                             PathFormat = options.PathFormat,
                             Stream = buffer,
-                            EqualsAsync = async x =>
-                            {
-                                var comparer = new OrdinalStreamEqualityComparer();
-                                return await comparer.EqualsAsync(buffer, x.Stream, CancellationToken.None);
-                            },
+                            EqualsAsync = null,
                             UploadDirect = !options.NoDirect,
                             Trace = Console.Out
                         };

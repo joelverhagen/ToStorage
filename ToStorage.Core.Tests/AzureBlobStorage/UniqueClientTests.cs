@@ -116,6 +116,30 @@ namespace Knapcode.ToStorage.Core.Tests.AzureBlobStorage
             }
         }
 
+        [Fact]
+        public async Task UniqueClient_AllowsNullEqualsAsync()
+        {
+            // Arrange
+            using (var tc = new TestContext())
+            {
+                tc.Content = "a1";
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+                await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+                tc.UtcNow = tc.UtcNow.AddMinutes(1);
+
+                tc.Content = "a2";
+                tc.UniqueUploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes(tc.Content));
+                tc.UniqueUploadRequest.EqualsAsync = null;
+
+                // Act
+                var actual = await tc.Target.UploadAsync(tc.UniqueUploadRequest);
+
+                // Assert
+                await tc.VerifyContentAsync(actual.DirectUri);
+                await tc.VerifyContentAsync(actual.LatestUri);
+            }
+        }
+
         private class TestContext : IDisposable
         {
             public TestContext()
