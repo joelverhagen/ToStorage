@@ -37,6 +37,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                     Trace = request.Trace
                 };
 
+                request.Trace.Write("Gettings the existing latest...");
                 using (var currentResult = await _innerClient.GetLatestStreamAsync(getLatestRequest))
                 {
                     // return nothing if the streams are equivalent
@@ -52,6 +53,7 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                         var contentMD5 = await GetStreamContentMD5(request.Stream);
                         if (contentMD5 == currentResult.ContentMD5)
                         {
+                            request.Trace.WriteLine(" exactly the same! No upload required.");
                             return null;
                         }
 
@@ -59,8 +61,15 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
                         request.Stream.Seek(0, SeekOrigin.Begin);
                         if (await request.EqualsAsync(currentResult))
                         {
+                            request.Trace.WriteLine(" equivalent! No upload required.");
                             return null;
                         }
+
+                        request.Trace.WriteLine(" different! The provided content will be uploaded.");
+                    }
+                    else
+                    {
+                        request.Trace.WriteLine(" non-existent! The provided content will be uploaded.");
                     }
 
                     // Seek to the beginning for uploading the blob.
