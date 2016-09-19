@@ -12,4 +12,7 @@
       <dependency id="WindowsAzure.Storage" version="6.2.0" />
     </dependencies>
   </metadata>
+  <files>
+  	<file src="bin/Release/net45/Knapcode.ToStorage.Core.dll" target="lib/net45" />
+  </files>
 </package>

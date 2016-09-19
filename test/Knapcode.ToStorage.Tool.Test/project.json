@@ -1,11 +1,18 @@
-﻿{
+{
+  "buildOptions": {
+    "debugType": "portable"
+  },
   "dependencies": {
-    "Knapcode.Procommand": "0.3.0"
+    "Knapcode.Procommand": "0.3.0",
+    "Knapcode.ToStorage.Core.Test": {
+      "target": "project"
+    }
+  },
+  "testRunner": "xunit",
+  "scripts": {
+    "postcompile": "dotnet publish %project:directory%/../../src/Knapcode.ToStorage.Tool"
   },
   "frameworks": {
-    "net45": {}
-  },
-  "runtimes": {
-    "win": {}
+    "net451": {}
   }
 }

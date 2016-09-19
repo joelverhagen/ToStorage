@@ -486,6 +486,9 @@ namespace Knapcode.ToStorage.Tool.Test
 #else
                     "Release",
 #endif
+                    "net45",
+                    "win7-x64",
+                    "publish",
                     "ToStorage.exe");
             }
 

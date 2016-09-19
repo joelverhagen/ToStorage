@@ -1,11 +1,13 @@
-﻿{
+{
+  "buildOptions": {
+    "debugType": "portable"
+  },
   "dependencies": {
-    "WindowsAzure.Storage": "6.2.0"
+  	"WindowsAzure.Storage": "6.2.0"
   },
   "frameworks": {
-    "net45": {}
-  },
-  "runtimes": {
-    "win": {}
+  	"net45": {
+      "dependencies": {}
+  	}
   }
 }

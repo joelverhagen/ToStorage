@@ -1,12 +1,17 @@
-﻿{
+{
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true,
+    "outputName": "ToStorage"
+  },
   "dependencies": {
     "CommandLineParser": "2.0.275-beta",
-    "FSharp.Core": "4.0.0.1"
+    "FSharp.Core": "4.0.0.1",
+    "Knapcode.ToStorage.Core": {
+      "target": "project"
+    }
   },
   "frameworks": {
     "net45": {}
-  },
-  "runtimes": {
-    "win": {}
   }
 }
