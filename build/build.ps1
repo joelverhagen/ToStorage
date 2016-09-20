@@ -38,7 +38,7 @@ $rootPath = [io.path]::GetFullPath((Join-Path $buildPath ".."))
 $nuget = Join-Path $buildPath "nuget.exe"
 $solutionPath = Join-Path $rootPath "ToStorage.sln"
 $artifactsPath = Join-Path $rootPath "artifacts"
-$dotnetCliPath = Join-Path $rootPath "cli"
+$dotnetCliPath = Join-Path $buildPath "cli"
 $dotnet = Join-Path $dotnetCliPath "dotnet.exe"
 $dotnetCliInstallScript = Join-Path $dotnetCliPath "dotnet-install.ps1"
 
@@ -81,7 +81,7 @@ if (-Not $SkipRestore) {
     # restore
     Trace-Information "Restoring..."
     & $dotnet restore $rootPath
-    & $nuget restore (Join-Path $buildPath "packages.config") -SolutionDirectory $rootPath   
+    & $nuget restore (Join-Path $buildPath "packages.config") -SolutionDirectory $buildPath
 }
 
 if (-Not $SkipBuild) {
@@ -98,7 +98,7 @@ if (-Not $SkipPack) {
     Get-ChildItem $artifactsPath -Recurse | Remove-Item -Force -Recurse
 
     # find ilmerge
-    $ilmerge = Get-ChildItem (Join-Path $rootPath "packages\**\ilmerge.exe") -Recurse
+    $ilmerge = Get-ChildItem (Join-Path $buildPath "packages\**\ilmerge.exe") -Recurse
     if (!$ilmerge) {
         throw "The build script could not find ilmerge.exe"
     }
