@@ -9,10 +9,16 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Pipe stuff to storage.</description>
     <dependencies>
-      <dependency id="WindowsAzure.Storage" version="6.2.0" />
+      <group targetFramework=".NETFramework4.5">
+        <dependency id="WindowsAzure.Storage" version="[6.2.0, )" />
+      </group>
+      <group targetFramework=".NETStandard1.3">
+        <dependency id="WindowsAzure.Storage" version="[7.2.0, )" />
+      </group>
     </dependencies>
   </metadata>
   <files>
-  	<file src="bin/Release/net45/Knapcode.ToStorage.Core.dll" target="lib/net45" />
+    <file src="bin/Release/net45/Knapcode.ToStorage.Core.dll" target="lib/net45" />
+    <file src="bin/Release/netstandard1.3/Knapcode.ToStorage.Core.dll" target="lib/netstandard1.3" />
   </files>
 </package>

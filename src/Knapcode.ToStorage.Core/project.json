@@ -2,12 +2,24 @@
   "buildOptions": {
     "debugType": "portable"
   },
-  "dependencies": {
-  	"WindowsAzure.Storage": "6.2.0"
-  },
+  "dependencies": {},
   "frameworks": {
-  	"net45": {
-      "dependencies": {}
-  	}
+    "net45": {
+      "buildOptions": {
+        "define": [ "NET_FRAMEWORK" ]
+      },
+      "dependencies": {
+        "WindowsAzure.Storage": "6.2.0"
+      }
+    },
+    "netstandard1.3": {
+      "buildOptions": {
+        "define": [ "NET_CORE" ]
+      },
+      "dependencies": {
+        "WindowsAzure.Storage": "7.2.0"
+      },
+      "imports": "portable-net45+win8"
+    }
   }
 }

@@ -15,7 +15,7 @@ namespace Knapcode.ToStorage.Core.Test
         public static void DeleteContainer(string container)
         {
             var context = new CloudContext(ConnectionString, container);
-            context.BlobContainer.DeleteIfExists();
+            context.BlobContainer.DeleteIfExistsAsync().Wait();
         }
     }
 }

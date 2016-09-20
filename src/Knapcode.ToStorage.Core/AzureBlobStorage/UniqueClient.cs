@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Knapcode.ToStorage.Core.Abstractions;
 
 namespace Knapcode.ToStorage.Core.AzureBlobStorage
 {
@@ -100,25 +100,23 @@ namespace Knapcode.ToStorage.Core.AzureBlobStorage
             }
         }
 
-        private async Task<string> GetStreamContentMD5(Stream stream)
+        public static async Task<string> GetStreamContentMD5(Stream stream)
         {
-            using (var md5 = MD5.Create())
+            using (var md5 = new MD5IncrementalHash())
             {
                 var buffer = new byte[8192];
                 var read = buffer.Length;
                 while (read > 0)
                 {
                     read = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    md5.TransformBlock(buffer, 0, read, null, 0);
+                    md5.AppendData(buffer, 0, read);
                 }
 
-                md5.TransformFinalBlock(new byte[0], 0, 0);
-                                
-                var hashBytes = md5.Hash;
+                var hashBytes = md5.GetHashAndReset();
                 var hashBase64 = Convert.ToBase64String(hashBytes);
 
                 return hashBase64;
-            } 
+            }
         }
     }
 }

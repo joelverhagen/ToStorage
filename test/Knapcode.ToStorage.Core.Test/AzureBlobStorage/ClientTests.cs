@@ -95,7 +95,7 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
 
                 tc.UploadRequest.ContentType = "text/plain";
                 tc.UploadRequest.Stream = new MemoryStream(Encoding.UTF8.GetBytes("foobar"));
-                tc.UploadRequest.ETag = "bad etag";
+                tc.UploadRequest.ETag = "\"bad etag\"";
 
                 tc.UtcNow = tc.UtcNow.AddMinutes(1);
 
@@ -351,14 +351,16 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
         public async Task Client_ReturnsNullOnMissingContainer()
         {
             // Arrange
-            var tc = new TestContext();
-            tc.GetLatestRequest.Container = "not-found-" + Guid.NewGuid();
-
-            // Act
-            using (var stream = await tc.Target.GetLatestStreamAsync(tc.GetLatestRequest))
+            using (var tc = new TestContext())
             {
-                // Assert
-                Assert.Null(stream);
+                tc.GetLatestRequest.Container = "not-found-" + Guid.NewGuid();
+
+                // Act
+                using (var stream = await tc.Target.GetLatestStreamAsync(tc.GetLatestRequest))
+                {
+                    // Assert
+                    Assert.Null(stream);
+                }
             }
         }
 

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Knapcode.ToStorage.Core.Abstractions;
 using Knapcode.ToStorage.Core.AzureBlobStorage;
@@ -34,25 +37,20 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 await tc.Target.CollapseAsync(tc.CollapseRequest);
 
                 // Assert
-                var blobs = tc.CloudContext.BlobContainer.ListBlobs(tc.Prefix, true);
-                var blobContent = blobs
-                    .OfType<ICloudBlob>()
-                    .Select(x => new { x.Name, Content = tc.GetString(x) })
-                    .OrderBy(x => x.Name)
-                    .ToArray();
-                Assert.Contains("2015.01.02.03.04.05", blobContent[0].Name);
-                Assert.Contains("2015.01.02.03.04.07", blobContent[1].Name);
-                Assert.Contains("2015.01.02.03.04.10", blobContent[2].Name);
-                Assert.Contains("2015.01.02.03.04.11", blobContent[3].Name);
-                Assert.Contains("2015.01.02.03.04.13", blobContent[4].Name);
-                Assert.Contains("latest", blobContent[5].Name);
-                Assert.Equal("a", blobContent[0].Content);
-                Assert.Equal("b", blobContent[1].Content);
-                Assert.Equal("a", blobContent[2].Content);
-                Assert.Equal("c", blobContent[3].Content);
-                Assert.Equal("d", blobContent[4].Content);
-                Assert.Equal("d", blobContent[5].Content);
-                Assert.Equal(6, blobContent.Length);
+                var blobs = await tc.ListBlobsAsync();
+                Assert.Contains("2015.01.02.03.04.05", blobs[0].Name);
+                Assert.Contains("2015.01.02.03.04.07", blobs[1].Name);
+                Assert.Contains("2015.01.02.03.04.10", blobs[2].Name);
+                Assert.Contains("2015.01.02.03.04.11", blobs[3].Name);
+                Assert.Contains("2015.01.02.03.04.13", blobs[4].Name);
+                Assert.Contains("latest", blobs[5].Name);
+                Assert.Equal("a", blobs[0].Content);
+                Assert.Equal("b", blobs[1].Content);
+                Assert.Equal("a", blobs[2].Content);
+                Assert.Equal("c", blobs[3].Content);
+                Assert.Equal("d", blobs[4].Content);
+                Assert.Equal("d", blobs[5].Content);
+                Assert.Equal(6, blobs.Count);
             }
         }
 
@@ -69,17 +67,12 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 await tc.Target.CollapseAsync(tc.CollapseRequest);
 
                 // Assert
-                var blobs = tc.CloudContext.BlobContainer.ListBlobs(tc.Prefix, true);
-                var blobContent = blobs
-                    .OfType<ICloudBlob>()
-                    .Select(x => new { x.Name, Content = tc.GetString(x) })
-                    .OrderBy(x => x.Name)
-                    .ToArray();
-                Assert.Contains("2015.01.02.03.04.05", blobContent[0].Name);
-                Assert.Contains("latest", blobContent[1].Name);
-                Assert.Equal("a", blobContent[0].Content);
-                Assert.Equal("a", blobContent[1].Content);
-                Assert.Equal(2, blobContent.Length);
+                var blobs = await tc.ListBlobsAsync();
+                Assert.Contains("2015.01.02.03.04.05", blobs[0].Name);
+                Assert.Contains("latest", blobs[1].Name);
+                Assert.Equal("a", blobs[0].Content);
+                Assert.Equal("a", blobs[1].Content);
+                Assert.Equal(2, blobs.Count);
             }
         }
 
@@ -95,16 +88,12 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 await tc.Target.CollapseAsync(tc.CollapseRequest);
 
                 // Assert
-                var blobs = tc.CloudContext.BlobContainer.ListBlobs(tc.Prefix, true);
-                var blobContent = blobs
-                    .OfType<ICloudBlob>()
-                    .Select(x => new { x.Name, Content = tc.GetString(x) })
-                    .ToArray();
-                Assert.Contains("2015.01.02.03.04.05", blobContent[0].Name);
-                Assert.Contains("latest", blobContent[1].Name);
-                Assert.Equal("a", blobContent[0].Content);
-                Assert.Equal("a", blobContent[1].Content);
-                Assert.Equal(2, blobContent.Length);
+                var blobs = await tc.ListBlobsAsync();
+                Assert.Contains("2015.01.02.03.04.05", blobs[0].Name);
+                Assert.Contains("latest", blobs[1].Name);
+                Assert.Equal("a", blobs[0].Content);
+                Assert.Equal("a", blobs[1].Content);
+                Assert.Equal(2, blobs.Count);
             }
         }
 
@@ -118,7 +107,7 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 await tc.Target.CollapseAsync(tc.CollapseRequest);
 
                 // Assert
-                Assert.False(tc.CloudContext.BlobContainer.Exists());
+                Assert.False(await tc.CloudContext.BlobContainer.ExistsAsync());
             }
         }
 
@@ -192,19 +181,63 @@ namespace Knapcode.ToStorage.Core.Test.AzureBlobStorage
                 await Client.UploadAsync(UploadRequest);
             }
 
-            public string GetString(ICloudBlob blob)
+            public async Task<string> GetStringAsync(ICloudBlob blob)
             {
-                using (var stream = blob.OpenRead())
+                using (var stream = await blob.OpenReadAsync(accessCondition: null, options: null, operationContext: null))
                 using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
-                    return reader.ReadToEnd();
+                    return await reader.ReadToEndAsync();
                 }
+            }
+
+            public async Task<List<Blob>> ListBlobsAsync()
+            {
+                var results = new List<Blob>();
+
+                BlobContinuationToken continuationToken = null;
+                var more = true;
+                while (more)
+                {
+                    var segment = await CloudContext.BlobContainer.ListBlobsSegmentedAsync(
+                        Prefix,
+                        useFlatBlobListing: true,
+                        blobListingDetails: BlobListingDetails.All,
+                        maxResults: null,
+                        currentToken: continuationToken,
+                        options: null,
+                        operationContext: null);
+
+                    continuationToken = segment.ContinuationToken;
+
+                    var contents = await Task.WhenAll(segment
+                        .Results
+                        .OfType<ICloudBlob>()
+                        .Select(x => GetStringAsync(x)));
+
+                    var segmentBlobs = segment
+                        .Results
+                        .OfType<ICloudBlob>()
+                        .Zip(contents, (blob, c) => new Blob { Name = blob.Name, Content = c })
+                        .ToList();
+
+                    more = continuationToken != null;
+
+                    results.AddRange(segmentBlobs);
+                }
+
+                return results;
             }
 
             public void Dispose()
             {
                 TestSupport.DeleteContainer(Container);
             }
+        }
+
+        private class Blob
+        {
+            public string Name { get; set; }
+            public string Content { get; set; }
         }
     }
 }

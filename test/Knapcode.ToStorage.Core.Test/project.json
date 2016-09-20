@@ -3,7 +3,7 @@
     "debugType": "portable"
   },
   "dependencies": {
-    "Moq": "4.2.1510.2205",
+    "Moq": "4.6.38-alpha",
     "xunit": "2.1.0",
     "dotnet-test-xunit": "1.0.0-rc2-*",
     "Knapcode.ToStorage.Core": {
@@ -16,6 +16,15 @@
       "frameworkAssemblies": {
         "System.Net.Http": ""
       }
+    },
+    "netcoreapp1.0": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "version": "1.0.0",
+          "type": "platform"
+        }
+      },
+      "imports": [ "dotnet", "portable-net45+win8" ]
     }
   }
 }
