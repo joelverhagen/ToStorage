@@ -74,7 +74,7 @@ Show-ErrorExitCode
 
 # create the artifacts directory
 if (-Not (Test-Path $artifactsPath)) {
-    New-Item -Path $artifactsPath -ItemType directory
+    New-Item -Path $artifactsPath -ItemType directory | Out-Null
 }
 
 if (-Not $SkipRestore) {
@@ -153,7 +153,7 @@ if (-Not $SkipTests) {
     $testProjects = Get-ChildItem (Join-Path $rootPath "test")
     foreach ($testProject in $testProjects) {
         $name = $testProject.Name
-        $arguments = @("test", $testProject.FullName, "-diagnostics", "-parallel", "all")
+        $arguments = @("test", $testProject.FullName, "--configuration", "Release", "--no-build", "-diagnostics", "-parallel", "all")
         if ($env:APPVEYOR) {
             $arguments += "-appveyor"
         } else {
