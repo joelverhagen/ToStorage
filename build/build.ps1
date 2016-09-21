@@ -1,8 +1,8 @@
 param (
-    [ValidateScript({ if ($_) { [Version]::new($_) } $true })]
-    [string] $Version,
     [ValidateSet("Release", "Debug", "")]
     [string] $Configuration = "Debug",
+    [ValidateScript({ if ($_) { [Version]::new($_) } $true })]
+    [string] $Version,
     [switch] $SkipRestore,
     [switch] $SkipBuild,
     [switch] $SkipEmulator,
@@ -52,6 +52,11 @@ $dotnetCliPath = Join-Path $buildPath "cli"
 $dotnet = Join-Path $dotnetCliPath "dotnet.exe"
 $dotnetCliInstallScript = Join-Path $dotnetCliPath "dotnet-install.ps1"
 
+# set the default configuration, if necessary
+if (-Not $Configuration) {
+    $Configuration = "Debug"
+}
+
 # set the default version, if necessary
 if (-Not $Version) {
     $Version = Get-Content (Join-Path $rootPath "appveyor.yml") | `
@@ -61,17 +66,13 @@ if (-Not $Version) {
         Select-Object -First 1
 }
 
-# set the default configuration, if necessary
-if (-Not $Configuration) {
-    $Configuration = "Debug"
-}
-
 # set the NuGet package version
 $parsedVersion = [Version]$version
 $packVersion = ([Version]::new($parsedVersion.Major, $parsedVersion.Minor, $parsedVersion.Build)).ToString();
 
-Trace-Information "Version: $Version"
-Trace-Information "Pack Version: $packVersion"
+Trace-Information "    Congiuration:  $Configuration"
+Trace-Information "    Build Version: $Version"
+Trace-Information "    Pack Version:  $packVersion"
 
 # download nuget.exe
 if (-Not (Test-Path $nuget)) {
@@ -80,11 +81,13 @@ if (-Not (Test-Path $nuget)) {
 }
 
 # install .NET CLI
-Trace-Information "Downloading .NET CLI..."
-New-Item $dotnetCliPath -Force -Type Directory | Out-Null
-Invoke-WebRequest $dotnetCliUrl -OutFile $dotnetCliInstallScript
-& $dotnetCliInstallScript -InstallDir $dotnetCliPath -Version 1.0.0-preview2-003121
-Show-ErrorExitCode
+if (-Not (Test-Path $dotnet)) {
+    Trace-Information "Downloading .NET CLI..."
+    New-Item $dotnetCliPath -Force -Type Directory | Out-Null
+    Invoke-WebRequest $dotnetCliUrl -OutFile $dotnetCliInstallScript
+    & $dotnetCliInstallScript -InstallDir $dotnetCliPath -Version 1.0.0-preview2-003121
+    Show-ErrorExitCode
+}
 
 # create the artifacts directory
 if (-Not (Test-Path $artifactsPath)) {
@@ -107,7 +110,7 @@ if (-Not $SkipBuild) {
     }    
 }
 
-if (-Not $SkipPack) {
+if (-Not $SkipPack -And ($Configuration -Eq "Release")) {
     Trace-Information "ILMerging..."
     Get-ChildItem $artifactsPath -Recurse | Remove-Item -Force -Recurse
 
@@ -135,10 +138,10 @@ if (-Not $SkipPack) {
 
     # NuGet pack core
     Trace-Information "Creating NuGet packages..."
-    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.nuspec") -OutputDirectory $artifactsPath -Version $packVersion
+    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.nuspec") -OutputDirectory $artifactsPath -Version $packVersion -Configuration $Configuration
 
     # NuGet pack tool
-    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $packVersion -BasePath $rootPath
+    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $packVersion -Configuration $Configuration -BasePath $rootPath
 
     # zip tool
     Trace-Information "Creating the tool .zip archive..."

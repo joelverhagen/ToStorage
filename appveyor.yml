@@ -6,9 +6,9 @@ assembly_info:
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}-$(APPVEYOR_REPO_COMMIT)'
 build_script:
-- ps: ".\\build.ps1 -Version:$env:APPVEYOR_BUILD_VERSION -SkipTests"
+- ps: ".\\build.ps1 -Configuration Release -Version:$env:APPVEYOR_BUILD_VERSION -SkipTests"
 test_script:
-- ps: ".\\build.ps1 -SkipRestore -SkipBuild -SkipPack"
+- ps: ".\\build.ps1 -Configuration Release -SkipRestore -SkipBuild -SkipPack"
 artifacts:
 - path: artifacts\*.nupkg
 - path: artifacts\*.zip

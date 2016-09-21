@@ -1,6 +1,6 @@
 param (
-    [string] $Version,
     [string] $Configuration,
+    [string] $Version,
     [switch] $SkipRestore,
     [switch] $SkipBuild,
     [switch] $SkipEmulator,
@@ -12,8 +12,8 @@ $repositoryRoot = $PSScriptRoot
 $buildScript = [io.path]::Combine($repositoryRoot, "build", "build.ps1")
 
 & $buildScript `
-    -Version $Version `
     -Configuration $Configuration `
+    -Version $Version `
     -SkipRestore:$SkipRestore `
     -SkipBuild:$SkipBuild `
     -SkipEmulator:$SkipEmulator `
