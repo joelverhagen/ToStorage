@@ -18,11 +18,11 @@ ping google.com | ToStorage -s CONNECTION_STRING -c CONTAINER
 
 ```
 Initializing... done.
-Uploading the blob to 2016.02.01.00.23.47.txt... done.
-Setting the content type... done.
-Updating latest.txt to the latest blob... done.
+Uploading the blob at '2016.09.21.14.52.23.8126950.txt'... done.
+Setting the content type of '2016.09.21.14.52.23.8126950.txt'... done.
+Copying the direct blob to the latest blob at 'latest.txt'... done.
 
-Direct: https://ACCOUNT.blob.core.windows.net/CONTAINER/2016.02.01.00.23.47.txt
+Direct: https://ACCOUNT.blob.core.windows.net/CONTAINER/2016.09.21.14.52.23.8126950.txt
 Latest: https://ACCOUNT.blob.core.windows.net/CONTAINER/latest.txt
 ```
 

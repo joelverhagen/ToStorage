@@ -70,7 +70,7 @@ if (-Not $Version) {
 $parsedVersion = [Version]$version
 $packVersion = ([Version]::new($parsedVersion.Major, $parsedVersion.Minor, $parsedVersion.Build)).ToString();
 
-Trace-Information "    Congiuration:  $Configuration"
+Trace-Information "    Configuration: $Configuration"
 Trace-Information "    Build Version: $Version"
 Trace-Information "    Pack Version:  $packVersion"
 
