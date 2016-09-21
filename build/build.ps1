@@ -138,10 +138,10 @@ if (-Not $SkipPack -And ($Configuration -Eq "Release")) {
 
     # NuGet pack core
     Trace-Information "Creating NuGet packages..."
-    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.nuspec") -OutputDirectory $artifactsPath -Version $packVersion -Configuration $Configuration
+    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Core\Knapcode.ToStorage.Core.nuspec") -OutputDirectory $artifactsPath -Version $packVersion
 
     # NuGet pack tool
-    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $packVersion -Configuration $Configuration -BasePath $rootPath
+    & $nuget pack (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\Knapcode.ToStorage.Tool.nuspec") -OutputDirectory $artifactsPath -Version $packVersion -BasePath $rootPath
 
     # zip tool
     Trace-Information "Creating the tool .zip archive..."
