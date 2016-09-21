@@ -5,13 +5,12 @@
     "outputName": "ToStorage"
   },
   "dependencies": {
-    "CommandLineParser": "2.0.275-beta",
-    "FSharp.Core": "4.0.0.1",
     "Knapcode.ToStorage.Core": {
       "target": "project"
-    }
+    },
+    "Microsoft.Extensions.CommandLineUtils": "1.0.0"
   },
   "frameworks": {
-    "net45": {}
+    "net451": {}
   }
 }

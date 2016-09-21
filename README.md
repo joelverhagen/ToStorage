@@ -29,27 +29,17 @@ Latest: https://ACCOUNT.blob.core.windows.net/CONTAINER/latest.txt
 ## Usage
 
 ```
-Knapcode.ToStorage 0.0.0.0
-(no copyright)
+Knapcode.ToStorage.Tool: send standard input (stdin) to Azure Blob storage.
 
-  -s, --connection-string    Required. The connection string for Azure Storage.
+Usage: ToStorage [options]
 
-  -c, --container            Required. The container name.
-
-  -f, --path-format          (Default: {0}.txt) The format to use when building
-                             the path.
-
-  -t, --content-type         (Default: text/plain) The content type to set on
-                             the blob.
-
-  --no-latest                (Default: false) Don't upload the latest blob.
-
-  --no-direct                (Default: false) Don't upload the direct blob.
-
-  -u, --only-unique          (Default: false) Only upload if the current upload
-                             is different than the lastest blob.
-
-  --help                     Display this help screen.
-
-  --version                  Display version information.
+Options:
+  -s|--connection-string  (required) The connection string for Azure Storage.
+  -c|--container          (required) The container name.
+  -f|--path-format        The format to use when building the path. Default: '{0}.txt'.
+  -t|--content-type       The content type to set on the blob. Default: 'text/plain'.
+  --no-latest             Don't upload the latest blob.
+  --no-direct             Don't upload the direct blob.
+  -u|--only-unique        Only upload if the current upload is different than the lastest blob.
+  -h|--help               Show help information.
 ```

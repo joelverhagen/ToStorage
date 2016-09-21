@@ -1,4 +1,14 @@
-param ( [string] $Version, [switch] $SkipRestore, [switch] $SkipBuild, [switch] $SkipEmulator, [switch] $SkipTests, [switch] $SkipPack )
+param (
+    [ValidateScript({ if ($_) { [Version]::new($_) } $true })]
+    [string] $Version,
+    [ValidateSet("Release", "Debug", "")]
+    [string] $Configuration = "Debug",
+    [switch] $SkipRestore,
+    [switch] $SkipBuild,
+    [switch] $SkipEmulator,
+    [switch] $SkipPack,
+    [switch] $SkipTests
+)
 
 $lastTraceTime = Get-Date
 
@@ -51,10 +61,14 @@ if (-Not $Version) {
         Select-Object -First 1
 }
 
+# set the default configuration, if necessary
+if (-Not $Configuration) {
+    $Configuration = "Debug"
+}
 
 # set the NuGet package version
-$parsedVersion = [version]$version
-$packVersion = ([version]::new($parsedVersion.Major, $parsedVersion.Minor, $parsedVersion.Build)).ToString();
+$parsedVersion = [Version]$version
+$packVersion = ([Version]::new($parsedVersion.Major, $parsedVersion.Minor, $parsedVersion.Build)).ToString();
 
 Trace-Information "Version: $Version"
 Trace-Information "Pack Version: $packVersion"
@@ -89,7 +103,7 @@ if (-Not $SkipBuild) {
     Trace-Information "Building..."
     $projects = Get-ChildItem $rootPath -Include project.json -Recurse
     foreach ($project in $projects) {
-        & $dotnet build $project.FullName "--configuration" Release
+        & $dotnet build $project.FullName "--configuration" $Configuration
     }    
 }
 
@@ -106,8 +120,8 @@ if (-Not $SkipPack) {
     $ilmerge = $ilmerge.FullName
 
     # publish
-    & $dotnet publish (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\project.json") --framework net45 "--configuration" Release
-    $originalTool = Join-Path $rootPath "src\Knapcode.ToStorage.Tool\bin\Release\net45\win7-x64\publish"
+    & $dotnet publish (Join-Path $rootPath "src\Knapcode.ToStorage.Tool\project.json") --framework net451 "--configuration" $Configuration
+    $originalTool = Join-Path $rootPath "src\Knapcode.ToStorage.Tool\bin\$Configuration\net451\win7-x64\publish"
 
     # ilmerge
     Write-Host $originalTool
@@ -153,7 +167,7 @@ if (-Not $SkipTests) {
     $testProjects = Get-ChildItem (Join-Path $rootPath "test")
     foreach ($testProject in $testProjects) {
         $name = $testProject.Name
-        $arguments = @("test", $testProject.FullName, "--configuration", "Release", "--no-build", "-diagnostics", "-parallel", "all")
+        $arguments = @("test", $testProject.FullName, "--configuration", $Configuration, "--no-build", "-diagnostics", "-parallel", "all")
         if ($env:APPVEYOR) {
             $arguments += "-appveyor"
         } else {

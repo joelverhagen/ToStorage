@@ -334,7 +334,7 @@ namespace Knapcode.ToStorage.Tool.Test
                 // Assert
                 Assert.Equal(CommandStatus.Exited, actual.Status);
                 Assert.Equal(1, actual.ExitCode);
-                Assert.Contains("Required option 's, connection-string' is missing.", actual.Error);
+                Assert.Contains("Error: required option -s, --connection-string is missing.", actual.Error);
             }
         }
 
@@ -356,7 +356,62 @@ namespace Knapcode.ToStorage.Tool.Test
                 // Assert
                 Assert.Equal(CommandStatus.Exited, actual.Status);
                 Assert.Equal(1, actual.ExitCode);
-                Assert.Contains("Required option 'c, container' is missing.", actual.Error);
+                Assert.Contains("Error: required option -c, --container is missing.", actual.Error);
+            }
+        }
+
+        [Fact]
+        public void RequiresConnectionStringAndContainerOptions()
+        {
+            // Arrange
+            using (var tc = new TestContext(_output))
+            {
+                // Act
+                var actual = tc.ExecuteCommand(
+                    Enumerable.Empty<string>(),
+                    tc.Content);
+
+                // Assert
+                Assert.Equal(CommandStatus.Exited, actual.Status);
+                Assert.Equal(1, actual.ExitCode);
+                Assert.Contains("Error: required option -s, --connection-string is missing.", actual.Error);
+                Assert.Contains("Error: required option -c, --container is missing.", actual.Error);
+            }
+        }
+
+        [Fact]
+        public void WritesHelpTextWithLongOptions()
+        {
+            // Arrange
+            using (var tc = new TestContext(_output))
+            {
+                // Act
+                var actual = tc.ExecuteCommand(
+                    new[] { "--help" },
+                    tc.Content);
+
+                // Assert
+                Assert.Equal(CommandStatus.Exited, actual.Status);
+                Assert.Equal(0, actual.ExitCode);
+                Assert.Contains("Usage: ToStorage [options]", actual.Output);
+            }
+        }
+
+        [Fact]
+        public void WritesHelpTextWithShortOptions()
+        {
+            // Arrange
+            using (var tc = new TestContext(_output))
+            {
+                // Act
+                var actual = tc.ExecuteCommand(
+                    new[] { "-h" },
+                    tc.Content);
+
+                // Assert
+                Assert.Equal(CommandStatus.Exited, actual.Status);
+                Assert.Equal(0, actual.ExitCode);
+                Assert.Contains("Usage: ToStorage [options]", actual.Output);
             }
         }
 
@@ -486,7 +541,7 @@ namespace Knapcode.ToStorage.Tool.Test
 #else
                     "Release",
 #endif
-                    "net45",
+                    "net451",
                     "win7-x64",
                     "publish",
                     "ToStorage.exe");
